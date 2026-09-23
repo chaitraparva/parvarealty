@@ -3,122 +3,138 @@ import { useInView } from '../hooks/useInView'
 import PropertyDetailModal, { type Property } from './PropertyDetailModal'
 import { getProperties } from '../store/propertyStore'
 import OwnerRequests from './OwnerRequests'
+import { listVerifiedIndianProperties } from '../store/requestStore'
 // Append Unsplash sizing params only for remote URLs; leave local assets untouched
 const imgSrc = (src: string, w: number, h: number) =>
-  src.startsWith('http') ? `${src}?w=${w}&h=${h}&fit=crop&auto=format` : src
+  src.includes('images.unsplash.com') ? `${src}?w=${w}&h=${h}&fit=crop&auto=format` : src
 
 import samanaExterior from '../imports/image-7.png'
-import samanaBedroom  from '../imports/image-8.png'
-import samanaPool     from '../imports/image-9.png'
-import samanaAmenity  from '../imports/image-10.png'
-import aurestaHero    from '../imports/image-11.png'
-import aurestaImg2    from '../imports/image-12.png'
-import aurestaImg3    from '../imports/image-13.png'
-import aurestaImg4    from '../imports/image-14.png'
-import aurestaImg5    from '../imports/image-15.png'
-import sunsetHero     from '../imports/image-16.png'
-import sunsetImg2     from '../imports/image-17.png'
-import sunsetImg3     from '../imports/image-18.png'
-import sunsetImg4     from '../imports/image-19.png'
-import symphonyHero   from '../imports/image-20.png'
-import symphonyImg2   from '../imports/image-21.png'
-import symphonyImg3   from '../imports/image-22.png'
-import symphonyImg4   from '../imports/image-23.png'
-import austinHero     from '../imports/image-24.png'
-import austinImg2     from '../imports/image-25.png'
-import austinImg3     from '../imports/image-26.png'
-import austinImg4     from '../imports/image-27.png'
-import tigerSkyHero   from '../imports/image-28.png'
-import tigerSkyImg2   from '../imports/image-29.png'
-import tigerSkyImg3   from '../imports/image-30.png'
-import serenzHero     from '../imports/image-31.png'
-import serenzImg2     from '../imports/image-32.png'
-import serenzImg3     from '../imports/image-33.png'
-import serenzImg4     from '../imports/image-34.png'
-import serenzImg5     from '../imports/image-35.png'
-import serenzImg6     from '../imports/image-36.png'
-import biancaHero     from '../imports/image-37.png'
-import biancaImg2     from '../imports/image-38.png'
-import biancaImg3     from '../imports/image-39.png'
-import biancaImg4     from '../imports/image-40.png'
-import biancaImg5     from '../imports/image-41.png'
-import biancaImg6     from '../imports/image-42.png'
-import portofinoHero  from '../imports/image-43.png'
-import portofinoImg2  from '../imports/image-44.png'
-import portofinoImg3  from '../imports/image-45.png'
-import portofinoImg4  from '../imports/image-46.png'
-import enreHero       from '../imports/image-47.png'
-import enreImg2       from '../imports/image-48.png'
-import enreImg3       from '../imports/image-49.png'
-import enreImg4       from '../imports/image-50.png'
-import enreImg5       from '../imports/image-51.png'
-import enreImg6       from '../imports/image-52.png'
-import enreImg7       from '../imports/image-53.png'
-import timezHero      from '../imports/image-54.png'
-import timezImg2      from '../imports/image-55.png'
-import timezImg3      from '../imports/image-56.png'
-import timezImg4      from '../imports/image-57.png'
-import timezImg5      from '../imports/image-58.png'
-import greenzHero     from '../imports/image-59.png'
-import greenzImg2     from '../imports/image-60.png'
-import greenzImg3     from '../imports/image-61.png'
-import greenzImg4     from '../imports/image-62.png'
+import samanaBedroom from '../imports/image-8.png'
+import samanaPool from '../imports/image-9.png'
+import samanaAmenity from '../imports/image-10.png'
+import aurestaHero from '../imports/image-11.png'
+import aurestaImg2 from '../imports/image-12.png'
+import aurestaImg3 from '../imports/image-13.png'
+import aurestaImg4 from '../imports/image-14.png'
+import aurestaImg5 from '../imports/image-15.png'
+import sunsetHero from '../imports/image-16.png'
+import sunsetImg2 from '../imports/image-17.png'
+import sunsetImg3 from '../imports/image-18.png'
+import sunsetImg4 from '../imports/image-19.png'
+import symphonyHero from '../imports/image-20.png'
+import symphonyImg2 from '../imports/image-21.png'
+import symphonyImg3 from '../imports/image-22.png'
+import symphonyImg4 from '../imports/image-23.png'
+import austinHero from '../imports/image-24.png'
+import austinImg2 from '../imports/image-25.png'
+import austinImg3 from '../imports/image-26.png'
+import austinImg4 from '../imports/image-27.png'
+import tigerSkyHero from '../imports/image-28.png'
+import tigerSkyImg2 from '../imports/image-29.png'
+import tigerSkyImg3 from '../imports/image-30.png'
+import serenzHero from '../imports/image-31.png'
+import serenzImg2 from '../imports/image-32.png'
+import serenzImg3 from '../imports/image-33.png'
+import serenzImg4 from '../imports/image-34.png'
+import serenzImg5 from '../imports/image-35.png'
+import serenzImg6 from '../imports/image-36.png'
+import biancaHero from '../imports/image-37.png'
+import biancaImg2 from '../imports/image-38.png'
+import biancaImg3 from '../imports/image-39.png'
+import biancaImg4 from '../imports/image-40.png'
+import biancaImg5 from '../imports/image-41.png'
+import biancaImg6 from '../imports/image-42.png'
+import portofinoHero from '../imports/image-43.png'
+import portofinoImg2 from '../imports/image-44.png'
+import portofinoImg3 from '../imports/image-45.png'
+import portofinoImg4 from '../imports/image-46.png'
+import enreHero from '../imports/image-47.png'
+import enreImg2 from '../imports/image-48.png'
+import enreImg3 from '../imports/image-49.png'
+import enreImg4 from '../imports/image-50.png'
+import enreImg5 from '../imports/image-51.png'
+import enreImg6 from '../imports/image-52.png'
+import enreImg7 from '../imports/image-53.png'
+import timezHero from '../imports/image-54.png'
+import timezImg2 from '../imports/image-55.png'
+import timezImg3 from '../imports/image-56.png'
+import timezImg4 from '../imports/image-57.png'
+import timezImg5 from '../imports/image-58.png'
+import greenzHero from '../imports/image-59.png'
+import greenzImg2 from '../imports/image-60.png'
+import greenzImg3 from '../imports/image-61.png'
+import greenzImg4 from '../imports/image-62.png'
 import mbExterior from '../imports/image.png'
-import mbLiving   from '../imports/image-1.png'
+import mbLiving from '../imports/image-1.png'
 import mbInterior from '../imports/image-2.png'
-import mbBath     from '../imports/image-3.png'
-import mbPool     from '../imports/image-4.png'
-import mbSpa      from '../imports/image-5.png'
-import mbBedroom  from '../imports/image-6.png'
+import mbBath from '../imports/image-3.png'
+import mbPool from '../imports/image-4.png'
+import mbSpa from '../imports/image-5.png'
+import mbBedroom from '../imports/image-6.png'
 
 type Tier = 'Entry / Value' | 'Mid-Range' | 'Premium' | 'Luxury'
 
 const tierConfig: Record<Tier, { color: string; bg: string; border: string }> = {
   'Entry / Value': { color: '#4A7C59', bg: 'rgba(74,124,89,0.12)', border: 'rgba(74,124,89,0.3)' },
-  'Mid-Range':     { color: '#3A72A8', bg: 'rgba(58,114,168,0.12)', border: 'rgba(58,114,168,0.3)' },
-  'Premium':       { color: '#7B5EA7', bg: 'rgba(123,94,167,0.12)', border: 'rgba(123,94,167,0.3)' },
-  'Luxury':        { color: '#C9A44A', bg: 'rgba(201,164,74,0.12)', border: 'rgba(201,164,74,0.35)' },
+  'Mid-Range': { color: '#3A72A8', bg: 'rgba(58,114,168,0.12)', border: 'rgba(58,114,168,0.3)' },
+  'Premium': { color: '#7B5EA7', bg: 'rgba(123,94,167,0.12)', border: 'rgba(123,94,167,0.3)' },
+  'Luxury': { color: '#C9A44A', bg: 'rgba(201,164,74,0.12)', border: 'rgba(201,164,74,0.35)' },
 }
 
 // Gallery image pool — contextual shots for each property
 const G = {
-  pool:        'https://images.unsplash.com/photo-1701929362885-86e7b25d3b77', // infinity pool skyline
-  lobby:       'https://images.unsplash.com/photo-1719474818087-f334f1e92985', // rooftop city view
-  bedroom:     'https://images.unsplash.com/photo-1779648596373-274e9d81ad80', // modern bedroom
-  bedroom2:    'https://images.unsplash.com/photo-1781473377323-fff4569c1eb2', // bedroom with TV
-  green:       'https://images.unsplash.com/photo-1743819455744-05417bf55cea', // building green lawn
-  aerial:      'https://images.unsplash.com/photo-1640877268187-2fa6b2ed7a5f', // aerial Dubai community
-  island:      'https://images.unsplash.com/photo-1732645023408-6e99df42f09e', // island in water
-  night:       'https://images.unsplash.com/photo-1608991156162-3c55b3cf05d3', // Dubai night skyline
-  sunset:      'https://images.unsplash.com/photo-1768463852019-4881a17a1c0e', // boat sails sunset skyline
-  atlantis:    'https://images.unsplash.com/photo-1786991810391-e28ee367c3aa', // Atlantis Palm Jumeirah aerial
-  palmaerial:  'https://images.unsplash.com/photo-1764212193268-dba11709dc38', // coastal city aerial Dubai
-  poolbuild:   'https://images.unsplash.com/photo-1524234599372-a5bd0194758d', // pool near city buildings
-  lounge:      'https://images.unsplash.com/photo-1586611292717-f828b167408c', // lounge chairs pool
-  tropical:    'https://images.unsplash.com/photo-1780734323790-6f18edf42997', // tropical island aerial
-  villahouse:  'https://images.unsplash.com/photo-1782720829237-ec146b0afe0a', // luxury house with palms
-  greentrees:  'https://images.unsplash.com/photo-1626227187853-6e334338e437', // building among green trees
-  nighttop:    'https://images.unsplash.com/photo-1739900292622-a7f860175aad', // city night from top
+  pool: 'https://images.unsplash.com/photo-1701929362885-86e7b25d3b77', // infinity pool skyline
+  lobby: 'https://images.unsplash.com/photo-1719474818087-f334f1e92985', // rooftop city view
+  bedroom: 'https://images.unsplash.com/photo-1779648596373-274e9d81ad80', // modern bedroom
+  bedroom2: 'https://images.unsplash.com/photo-1781473377323-fff4569c1eb2', // bedroom with TV
+  green: 'https://images.unsplash.com/photo-1743819455744-05417bf55cea', // building green lawn
+  aerial: 'https://images.unsplash.com/photo-1640877268187-2fa6b2ed7a5f', // aerial Dubai community
+  island: 'https://images.unsplash.com/photo-1732645023408-6e99df42f09e', // island in water
+  night: 'https://images.unsplash.com/photo-1608991156162-3c55b3cf05d3', // Dubai night skyline
+  sunset: 'https://images.unsplash.com/photo-1768463852019-4881a17a1c0e', // boat sails sunset skyline
+  atlantis: 'https://images.unsplash.com/photo-1786991810391-e28ee367c3aa', // Atlantis Palm Jumeirah aerial
+  palmaerial: 'https://images.unsplash.com/photo-1764212193268-dba11709dc38', // coastal city aerial Dubai
+  poolbuild: 'https://images.unsplash.com/photo-1524234599372-a5bd0194758d', // pool near city buildings
+  lounge: 'https://images.unsplash.com/photo-1586611292717-f828b167408c', // lounge chairs pool
+  tropical: 'https://images.unsplash.com/photo-1780734323790-6f18edf42997', // tropical island aerial
+  villahouse: 'https://images.unsplash.com/photo-1782720829237-ec146b0afe0a', // luxury house with palms
+  greentrees: 'https://images.unsplash.com/photo-1626227187853-6e334338e437', // building among green trees
+  nighttop: 'https://images.unsplash.com/photo-1739900292622-a7f860175aad', // city night from top
   watersunset: 'https://images.unsplash.com/photo-1773393776477-61773dfc8a09', // hotel on water sunset
-  jvcaerial:   'https://images.unsplash.com/photo-1647845594306-b239d70798a7', // JVC/Dubai mid-rise aerial
+  jvcaerial: 'https://images.unsplash.com/photo-1647845594306-b239d70798a7', // JVC/Dubai mid-rise aerial
   jvccircular: 'https://images.unsplash.com/photo-1642715350691-7ffde05661c4', // aerial circular residential
   businessbay: 'https://images.unsplash.com/photo-1617449512807-7401d38e5c29', // Business Bay canal street
-  bbacanal:    'https://images.unsplash.com/photo-1591609073408-f3d66d8fc11d', // Business Bay skyline
-  mbbuilding:  'https://images.unsplash.com/photo-1740671167535-9e5670359626', // Mercedes-Benz logo tower
-  townhouses:  'https://images.unsplash.com/photo-1743819458014-f5cf74f175e3', // colorful Dubai townhouses
-  cityaerial:  'https://images.unsplash.com/photo-1721170628992-ddd25faa162e', // aerial city with green trees
-  ainisland:   'https://images.unsplash.com/photo-1784285827951-d11105694e2a', // Ain Dubai island ferris
-  burjnight:   'https://images.unsplash.com/photo-1559717201-fbb671ff56b7', // Burj Khalifa night highways
+  bbacanal: 'https://images.unsplash.com/photo-1591609073408-f3d66d8fc11d', // Business Bay skyline
+  mbbuilding: 'https://images.unsplash.com/photo-1740671167535-9e5670359626', // Mercedes-Benz logo tower
+  townhouses: 'https://images.unsplash.com/photo-1743819458014-f5cf74f175e3', // colorful Dubai townhouses
+  cityaerial: 'https://images.unsplash.com/photo-1721170628992-ddd25faa162e', // aerial city with green trees
+  ainisland: 'https://images.unsplash.com/photo-1784285827951-d11105694e2a', // Ain Dubai island ferris
+  burjnight: 'https://images.unsplash.com/photo-1559717201-fbb671ff56b7', // Burj Khalifa night highways
 }
 
 
-const zones = ['All', 'JVC', 'Dubai South', 'Business Bay', 'Downtown', 'Dubai Islands', 'Dubailand', 'Silicon Oasis', 'Academic City', 'Meydan']
+type Country = 'All' | 'Dubai' | 'India'
+const countries: { id: Country; label: string }[] = [
+  { id: 'All', label: 'All Properties' },
+  { id: 'Dubai', label: 'Dubai Properties' },
+  { id: 'India', label: 'Indian Properties' },
+]
+const countryOf = (p: Property) => p.country ?? 'Dubai'
+
+const dubaiZones = ['All', 'JVC', 'Dubai South', 'Business Bay', 'Downtown', 'Dubai Islands', 'Dubailand', 'Silicon Oasis', 'Academic City', 'Meydan']
 const tiers: Array<'All' | Tier> = ['All', 'Entry / Value', 'Mid-Range', 'Premium', 'Luxury']
 
 export default function PropertyCatalogue() {
   const { ref, visible } = useInView(0.01)
   const [properties, setProperties] = useState<Property[]>([])
-  useEffect(() => { setProperties(getProperties()) }, [])
+  useEffect(() => {
+    setProperties(getProperties())
+    // Add owner-listed Indian properties that an admin has verified
+    listVerifiedIndianProperties().then(indian => {
+      if (indian.length) setProperties([...getProperties(), ...indian])
+    })
+  }, [])
+  const [country, setCountry] = useState<Country>('All')
   const [zone, setZone] = useState('All')
   const [tier, setTier] = useState<'All' | Tier>('All')
   const [search, setSearch] = useState('')
@@ -128,6 +144,7 @@ export default function PropertyCatalogue() {
   useEffect(() => {
     const handler = (e: Event) => {
       const z = (e as CustomEvent<{ zone: string }>).detail.zone
+      setCountry('Dubai')
       setZone(z)
       setTier('All')
       setSearch('')
@@ -151,21 +168,27 @@ export default function PropertyCatalogue() {
     }
   }
 
+  // Zone pills: Dubai zones, or Indian cities when "Indian Properties" is selected
+  const zones = country === 'India'
+    ? ['All', ...Array.from(new Set(properties.filter(p => countryOf(p) === 'India').map(p => p.zone).filter(Boolean)))]
+    : dubaiZones
+
   const filtered = properties
     .filter(p => {
+      if (country !== 'All' && countryOf(p) !== country) return false
       if (zone !== 'All' && p.zone !== zone) return false
       if (tier !== 'All' && p.tier !== tier) return false
       if (search && !p.name.toLowerCase().includes(search.toLowerCase()) &&
-          !p.location.toLowerCase().includes(search.toLowerCase()) &&
-          !p.developer.toLowerCase().includes(search.toLowerCase())) return false
+        !p.location.toLowerCase().includes(search.toLowerCase()) &&
+        !p.developer.toLowerCase().includes(search.toLowerCase())) return false
       return true
     })
     .sort((a, b) => {
       if (sort === 'yield') return b.rentalYield - a.rentalYield
       if (sort === 'views') return b.views - a.views
       if (sort === 'appreciation') return b.appreciation - a.appreciation
-      if (sort === 'price-asc') return parseFloat(a.priceAED.replace(/[^0-9.]/g, '')) - parseFloat(b.priceAED.replace(/[^0-9.]/g, ''))
-      if (sort === 'price-desc') return parseFloat(b.priceAED.replace(/[^0-9.]/g, '')) - parseFloat(a.priceAED.replace(/[^0-9.]/g, ''))
+      if (sort === 'price-asc') return (parseFloat(a.priceAED.replace(/[^0-9.]/g, '')) || 0) - (parseFloat(b.priceAED.replace(/[^0-9.]/g, '')) || 0)
+      if (sort === 'price-desc') return (parseFloat(b.priceAED.replace(/[^0-9.]/g, '')) || 0) - (parseFloat(a.priceAED.replace(/[^0-9.]/g, '')) || 0)
       return 0
     })
 
@@ -198,13 +221,34 @@ export default function PropertyCatalogue() {
             <div className="relative mb-4">
               <svg className="absolute left-3.5 top-1/2 -translate-y-1/2" width="15" height="15"
                 viewBox="0 0 24 24" fill="none" stroke="rgba(201,164,74,0.3)" strokeWidth="2">
-                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
               </svg>
               <input
                 type="text" placeholder="Search by project name, location, or developer…"
                 value={search} onChange={e => setSearch(e.target.value)}
                 className="pl-10"
               />
+            </div>
+
+            {/* Country pills */}
+            <div className="flex gap-2 flex-wrap mb-3">
+              {countries.map(c => {
+                const active = country === c.id
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => { setCountry(c.id); setZone('All') }}
+                    className="px-4 py-1.5 rounded-full font-outfit text-xs font-semibold transition-all"
+                    style={{
+                      background: active ? 'rgba(201,164,74,0.16)' : 'rgba(255,255,255,0.04)',
+                      color: active ? '#E8C97E' : 'var(--text-f)',
+                      border: active ? '1px solid rgba(201,164,74,0.45)' : '1px solid rgba(255,255,255,0.07)',
+                    }}
+                  >
+                    {c.label}
+                  </button>
+                )
+              })}
             </div>
 
             {/* Tier pills */}
@@ -230,7 +274,7 @@ export default function PropertyCatalogue() {
 
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
               {/* Zone pills */}
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-2 flex-wrap flex-1">
                 {zones.map(z => (
                   <button
                     key={z} onClick={() => setZone(z)}
@@ -250,6 +294,7 @@ export default function PropertyCatalogue() {
               <select
                 value={sort} onChange={e => setSort(e.target.value)}
                 className="w-auto min-w-[180px]"
+                style={{ maxWidth: 300 }}
               >
                 <option value="views">Sort: Most Viewed</option>
                 <option value="yield">Sort: Rental Yield</option>
@@ -271,8 +316,8 @@ export default function PropertyCatalogue() {
                 className="flex items-center gap-2 font-outfit text-xs font-semibold text-[#C9A44A] hover:text-[#E8C97E] transition-colors"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                  <rect x="3" y="14" width="7" height="7"/>
+                  <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
                 </svg>
                 Compare {compare.length} selected
               </button>
@@ -382,7 +427,7 @@ export default function PropertyCatalogue() {
                       <svg width="13" height="13" viewBox="0 0 24 24"
                         fill={inWatch ? '#C9A44A' : 'none'}
                         stroke={inWatch ? '#C9A44A' : '#DDD9D2'} strokeWidth="1.8">
-                        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
                       </svg>
                     </button>
 
@@ -421,7 +466,7 @@ export default function PropertyCatalogue() {
                       <div className="flex items-center gap-3 mt-1 flex-wrap">
                         <div className="flex items-center gap-1.5">
                           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#C9A44A" strokeWidth="2">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" />
                           </svg>
                           <span className="font-outfit text-xs" style={{ color: 'var(--text-f)' }}>{p.location}</span>
                         </div>
@@ -431,7 +476,7 @@ export default function PropertyCatalogue() {
 
                     {/* Specs */}
                     <div className="flex gap-2 flex-wrap">
-                      {[p.unitTypes, p.area, p.completion].map(s => (
+                      {[p.unitTypes, p.area, p.completion].filter(s => s && s !== '—').map(s => (
                         <span key={s} className="px-2.5 py-1 rounded-lg font-outfit text-[0.62rem]"
                           style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--text-m)', border: '1px solid rgba(255,255,255,0.07)' }}>
                           {s}
@@ -480,14 +525,14 @@ export default function PropertyCatalogue() {
                     </div>
 
                     {/* Views */}
-                    <div className="flex items-center gap-1.5">
+                    {p.views > 0 && <div className="flex items-center gap-1.5">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(201,164,74,0.2)" strokeWidth="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
                       </svg>
                       <span className="font-dm-mono text-[0.58rem]" style={{ color: 'var(--text-ff)' }}>
                         {p.views.toLocaleString()} views this month
                       </span>
-                    </div>
+                    </div>}
 
                     <button
                       onClick={e => { e.stopPropagation(); setDetailProp(p) }}
@@ -504,7 +549,7 @@ export default function PropertyCatalogue() {
           {filtered.length === 0 && (
             <div className="text-center py-20">
               <div className="font-cinzel text-xl" style={{ color: 'var(--text-ff)' }}>No properties match your filters</div>
-              <button onClick={() => { setZone('All'); setTier('All'); setSearch('') }} className="btn-outline-gold mt-6">
+              <button onClick={() => { setCountry('All'); setZone('All'); setTier('All'); setSearch('') }} className="btn-outline-gold mt-6">
                 Clear All Filters
               </button>
             </div>

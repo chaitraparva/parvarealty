@@ -8,22 +8,24 @@ import {
   compressPhoto,
   type ClientUser,
   type RequestType,
+  type Tier,
 } from '../store/requestStore'
 
 type Step = 'intro' | 'auth' | 'form' | 'done'
 const MAX_PHOTOS = 10
 
-const OPTIONS: { type: RequestType; title: string; text: string; cta: string }[] = [
+const OPTIONS: { type: RequestType; title: string; subtitle?: string; text: string; cta: string }[] = [
   {
     type: 'exchange',
-    title: 'Sell in India, Buy in Dubai',
+    title: 'Exchange Your Property',
+    subtitle: 'Sell in India · Buy in Dubai',
     text: 'Own a property in India and want to buy a property in Dubai? Share your India property details and photos with us. For owners only.',
-    cta: 'Get Started',
+    cta: 'Exchange Property',
   },
   {
     type: 'sell',
     title: 'Sell Your Property',
-    text: 'Want to sell your property? Share the details with us and our team will get in touch.',
+    text: 'Want to sell your property in India? Share the details and photos with us and our team will get in touch.',
     cta: 'Sell Property',
   },
 ]
@@ -56,7 +58,12 @@ export default function OwnerRequests() {
                   </svg>
                 )}
               </div>
-              <h3 className="font-cinzel text-lg font-semibold" style={{ color: 'var(--text-h)' }}>{o.title}</h3>
+              <div>
+                <h3 className="font-cinzel text-lg font-semibold" style={{ color: 'var(--text-h)' }}>{o.title}</h3>
+                {o.subtitle && (
+                  <div className="font-outfit text-xs font-semibold tracking-wide mt-0.5" style={{ color: '#C9A44A' }}>{o.subtitle}</div>
+                )}
+              </div>
             </div>
             <p className="font-outfit text-sm leading-relaxed" style={{ color: 'var(--text-m)' }}>{o.text}</p>
             <button className="btn-gold justify-center mt-auto self-start" onClick={() => setActive(o.type)}>
@@ -88,7 +95,7 @@ function RequestModal({ type, onClose }: { type: RequestType; onClose: () => voi
     }
   }, [onClose])
 
-  const title = type === 'exchange' ? 'Sell in India, Buy in Dubai' : 'Sell Your Property'
+  const title = type === 'exchange' ? 'Exchange Your Property' : 'Sell Your Property'
 
   const continueFromIntro = () => setStep(user ? 'form' : 'auth')
 
@@ -99,7 +106,7 @@ function RequestModal({ type, onClose }: { type: RequestType; onClose: () => voi
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-2xl my-8 relative"
+        className={`w-full ${step === 'form' ? 'max-w-2xl' : 'max-w-lg'} rounded-2xl my-8 relative`}
         style={{ background: 'var(--bg-a)', border: '1px solid rgba(201,164,74,0.25)', boxShadow: '0 30px 90px rgba(0,0,0,0.5)' }}
         onClick={e => e.stopPropagation()}
         role="dialog"
@@ -108,7 +115,12 @@ function RequestModal({ type, onClose }: { type: RequestType; onClose: () => voi
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-          <div className="font-cinzel text-lg font-semibold" style={{ color: 'var(--text-h)' }}>{title}</div>
+          <div>
+            <div className="font-cinzel text-lg font-semibold" style={{ color: 'var(--text-h)' }}>{title}</div>
+            {type === 'exchange' && (
+              <div className="font-outfit text-xs font-semibold mt-0.5" style={{ color: '#C9A44A' }}>Sell in India · Buy in Dubai</div>
+            )}
+          </div>
           <button
             onClick={onClose}
             aria-label="Close"
@@ -251,27 +263,72 @@ function AuthStep({ onDone }: { onDone: (u: ClientUser) => void }) {
 }
 
 // ─── Property details form ──────────────────────────────────────────────────
+const TIERS: Tier[] = ['Entry / Value', 'Mid-Range', 'Premium', 'Luxury']
+const PROPERTY_TYPES = ['Apartment', 'Villa', 'Independent House', 'Row House', 'Plot / Land', 'Commercial']
+
+type FormState = {
+  fullName: string
+  phone: string
+  address: string
+  propertyName: string
+  developer: string
+  location: string
+  city: string
+  propertyType: string
+  unitTypes: string
+  tier: Tier
+  price: string
+  priceAED: string
+  rentalYield: string
+  appreciation: string
+  minDeposit: string
+  area: string
+  completion: string
+  floors: string
+  totalUnits: string
+  bedrooms: string
+  handoverQuarter: string
+  standout: string
+  description: string
+  amenities: string
+  paymentPlan: { milestone: string; pct: string }[]
+}
+
+const num = (v: string) => {
+  const n = parseFloat(v)
+  return Number.isFinite(n) ? n : 0
+}
+
 function FormStep({ type, user, onDone, onSwitchAccount }: {
   type: RequestType
   user: ClientUser
   onDone: () => void
   onSwitchAccount: () => void
 }) {
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState(user.phone)
-  const [address, setAddress] = useState('')
-  const [location, setLocation] = useState('')
+  const [f, setF] = useState<FormState>({
+    fullName: '', phone: user.phone, address: '',
+    propertyName: '', developer: '', location: '', city: '', propertyType: 'Apartment', unitTypes: '', tier: 'Mid-Range',
+    price: '', priceAED: '', rentalYield: '', appreciation: '', minDeposit: '', area: '',
+    completion: '', floors: '', totalUnits: '', bedrooms: '', handoverQuarter: '', standout: '', description: '',
+    amenities: '', paymentPlan: [],
+  })
   const [photos, setPhotos] = useState<{ blob: Blob; url: string }[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+
+  const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setF(prev => ({ ...prev, [k]: v }))
+  const bind = (k: Exclude<keyof FormState, 'paymentPlan' | 'tier'>) => ({
+    value: f[k] as string,
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => set(k, e.target.value),
+  })
 
   useEffect(() => () => photos.forEach(p => URL.revokeObjectURL(p.url)), []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const addPhotos = async (files: FileList | null) => {
     if (!files) return
     const room = MAX_PHOTOS - photos.length
-    const picked = Array.from(files).filter(f => f.type.startsWith('image/')).slice(0, room)
-    const blobs = await Promise.all(picked.map(f => compressPhoto(f)))
+    const picked = Array.from(files).filter(file => file.type.startsWith('image/')).slice(0, room)
+    const blobs = await Promise.all(picked.map(file => compressPhoto(file)))
     setPhotos(p => [...p, ...blobs.map(blob => ({ blob, url: URL.createObjectURL(blob) }))])
     setError('')
   }
@@ -291,11 +348,37 @@ function FormStep({ type, user, onDone, onSwitchAccount }: {
     try {
       await submitRequest({
         type,
-        name: name.trim(),
+        name: f.fullName.trim(),
         email: user.email,
-        phone: phone.trim(),
-        address: address.trim(),
-        location: location.trim(),
+        phone: f.phone.trim(),
+        address: f.address.trim(),
+        location: [f.location.trim(), f.city.trim()].filter(Boolean).join(', '),
+        details: {
+          propertyName: f.propertyName.trim(),
+          developer: f.developer.trim(),
+          location: f.location.trim(),
+          city: f.city.trim(),
+          propertyType: f.propertyType,
+          unitTypes: f.unitTypes.trim(),
+          tier: f.tier,
+          price: f.price.trim(),
+          priceAED: f.priceAED.trim(),
+          rentalYield: num(f.rentalYield),
+          appreciation: num(f.appreciation),
+          minDeposit: f.minDeposit.trim(),
+          area: f.area.trim(),
+          completion: f.completion.trim(),
+          floors: Math.round(num(f.floors)),
+          totalUnits: Math.round(num(f.totalUnits)),
+          bedrooms: Math.round(num(f.bedrooms)),
+          handoverQuarter: f.handoverQuarter.trim(),
+          standout: f.standout.trim(),
+          description: f.description.trim(),
+          amenities: f.amenities.split(',').map(a => a.trim()).filter(Boolean),
+          paymentPlan: f.paymentPlan
+            .filter(pp => pp.milestone.trim())
+            .map(pp => ({ milestone: pp.milestone.trim(), pct: Math.round(num(pp.pct)) })),
+        },
         photos: photos.map(p => p.blob),
       })
       onDone()
@@ -305,32 +388,173 @@ function FormStep({ type, user, onDone, onSwitchAccount }: {
     }
   }
 
-  return (
-    <form onSubmit={submit} className="flex flex-col gap-4">
-      <Field label="Full name">
-        <input type="text" required value={name} onChange={e => setName(e.target.value)} autoComplete="name" placeholder="Your full name" />
-      </Field>
-      <Field label="Email">
-        <input type="email" value={user.email} readOnly style={{ opacity: 0.7 }} />
-        <button type="button" onClick={onSwitchAccount} className="font-outfit text-xs mt-1.5 underline" style={{ color: 'var(--text-f)' }}>
-          Not you? Log out
-        </button>
-      </Field>
-      <Field label="Mobile number">
-        <input type="tel" required value={phone} onChange={e => setPhone(e.target.value)} placeholder="+91 98765 43210" pattern="[+0-9 ()-]{7,20}" />
-      </Field>
-      <Field label="Property address">
-        <textarea required rows={3} value={address} onChange={e => setAddress(e.target.value)} placeholder="Flat / house no., building, street, area" />
-      </Field>
-      <Field label="Property location">
-        <input type="text" required value={location} onChange={e => setLocation(e.target.value)} placeholder="City / area" />
-      </Field>
+  const grid = 'grid grid-cols-1 sm:grid-cols-2 gap-4'
 
-      <Field label={`Property photos (${photos.length}/${MAX_PHOTOS})`}>
-        <div className="grid grid-cols-4 gap-2">
+  return (
+    <form onSubmit={submit} className="flex flex-col gap-7">
+      {/* Contact (private) */}
+      <section className="flex flex-col gap-4">
+        <SectionTitle note="Only shared with Parva. Not shown on the website.">Your Details</SectionTitle>
+        <div className={grid}>
+          <Field label="Full name *">
+            <input type="text" required {...bind('fullName')} autoComplete="name" placeholder="Your full name" />
+          </Field>
+          <Field label="Mobile number *">
+            <input type="tel" required {...bind('phone')} placeholder="+91 98765 43210" pattern="[+0-9 ()-]{7,20}" />
+          </Field>
+        </div>
+        <Field label="Email">
+          <input type="email" value={user.email} readOnly style={{ opacity: 0.7 }} />
+          <button type="button" onClick={onSwitchAccount} className="font-outfit text-xs mt-1.5 underline" style={{ color: 'var(--text-f)' }}>
+            Not you? Log out
+          </button>
+        </Field>
+        <Field label="Full property address *">
+          <textarea required rows={2} {...bind('address')} placeholder="Flat / house no., building, street, area, pincode" />
+        </Field>
+      </section>
+
+      {/* Basic information */}
+      <section className="flex flex-col gap-4">
+        <SectionTitle>Basic Information</SectionTitle>
+        <div className={grid}>
+          <Field label="Property name *">
+            <input type="text" required {...bind('propertyName')} placeholder="e.g. Prestige Lakeside, Flat 4B" />
+          </Field>
+          <Field label="Developer / builder">
+            <input type="text" {...bind('developer')} placeholder="e.g. Prestige Group" />
+          </Field>
+          <Field label="Location / area *">
+            <input type="text" required {...bind('location')} placeholder="e.g. Whitefield" />
+          </Field>
+          <Field label="City *">
+            <input type="text" required {...bind('city')} placeholder="e.g. Bengaluru" />
+          </Field>
+          <Field label="Property type *">
+            <select required {...bind('propertyType')}>
+              {PROPERTY_TYPES.map(t => <option key={t}>{t}</option>)}
+            </select>
+          </Field>
+          <Field label="Unit type *">
+            <input type="text" required {...bind('unitTypes')} placeholder="e.g. 2 BHK" />
+          </Field>
+          <Field label="Tier *">
+            <select required value={f.tier} onChange={e => set('tier', e.target.value as Tier)}>
+              {TIERS.map(t => <option key={t}>{t}</option>)}
+            </select>
+          </Field>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="flex flex-col gap-4">
+        <SectionTitle>Pricing & Returns</SectionTitle>
+        <div className={grid}>
+          <Field label="Expected price (INR) *">
+            <input type="text" required {...bind('price')} placeholder="e.g. ₹1.2 Cr" />
+          </Field>
+          <Field label="Price (AED)">
+            <input type="text" {...bind('priceAED')} placeholder="e.g. ~AED 520K" />
+          </Field>
+          <Field label="Rental yield (%)">
+            <input type="number" step="0.1" min="0" {...bind('rentalYield')} placeholder="e.g. 3.5" />
+          </Field>
+          <Field label="Appreciation (%)">
+            <input type="number" step="0.1" min="0" {...bind('appreciation')} placeholder="e.g. 6" />
+          </Field>
+          <Field label="Token / min. deposit">
+            <input type="text" {...bind('minDeposit')} placeholder="e.g. ₹5L" />
+          </Field>
+          <Field label="Area (sq ft) *">
+            <input type="text" required {...bind('area')} placeholder="e.g. 1,250 sq ft" />
+          </Field>
+        </div>
+      </section>
+
+      {/* Project details */}
+      <section className="flex flex-col gap-4">
+        <SectionTitle>Property Details</SectionTitle>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <Field label="Bedrooms *">
+            <input type="number" min="0" required {...bind('bedrooms')} placeholder="e.g. 2" />
+          </Field>
+          <Field label="Floors">
+            <input type="number" min="0" {...bind('floors')} placeholder="e.g. 14" />
+          </Field>
+          <Field label="Total units">
+            <input type="number" min="0" {...bind('totalUnits')} placeholder="e.g. 240" />
+          </Field>
+          <Field label="Completion / year built">
+            <input type="text" {...bind('completion')} placeholder="e.g. 2019 / Ready" />
+          </Field>
+          <Field label="Handover">
+            <input type="text" {...bind('handoverQuarter')} placeholder="e.g. Immediate" />
+          </Field>
+        </div>
+        <Field label="Standout (short highlight)">
+          <input type="text" {...bind('standout')} placeholder="One line about why this property is special" />
+        </Field>
+        <Field label="Full description *">
+          <textarea required rows={4} {...bind('description')} placeholder="Describe the property, condition, facing, parking, nearby places…" />
+        </Field>
+        <Field label="Amenities (separate with commas)">
+          <input type="text" {...bind('amenities')} placeholder="e.g. Gym, Swimming pool, Covered parking, 24/7 security" />
+        </Field>
+      </section>
+
+      {/* Payment plan */}
+      <section className="flex flex-col gap-3">
+        <SectionTitle>Payment Plan</SectionTitle>
+        {f.paymentPlan.map((pp, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <input
+              type="text"
+              value={pp.milestone}
+              onChange={e => set('paymentPlan', f.paymentPlan.map((x, j) => (j === i ? { ...x, milestone: e.target.value } : x)))}
+              placeholder="Milestone, e.g. On agreement"
+            />
+            <input
+              type="number"
+              min="0"
+              max="100"
+              value={pp.pct}
+              onChange={e => set('paymentPlan', f.paymentPlan.map((x, j) => (j === i ? { ...x, pct: e.target.value } : x)))}
+              placeholder="%"
+              style={{ width: 80, flexShrink: 0 }}
+            />
+            <button
+              type="button"
+              onClick={() => set('paymentPlan', f.paymentPlan.filter((_, j) => j !== i))}
+              aria-label="Remove milestone"
+              className="text-lg px-2 flex-shrink-0"
+              style={{ color: '#EF4444' }}
+            >
+              ×
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => set('paymentPlan', [...f.paymentPlan, { milestone: '', pct: '' }])}
+          className="self-start font-outfit text-xs px-4 py-2 rounded-lg"
+          style={{ background: 'rgba(201,164,74,0.08)', border: '1px solid rgba(201,164,74,0.25)', color: '#C9A44A' }}
+        >
+          + Add milestone
+        </button>
+      </section>
+
+      {/* Photos */}
+      <section className="flex flex-col gap-3">
+        <SectionTitle note="The first photo is used as the cover.">{`Property Photos * (${photos.length}/${MAX_PHOTOS})`}</SectionTitle>
+        <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
           {photos.map((p, i) => (
-            <div key={p.url} className="relative aspect-square rounded-lg overflow-hidden" style={{ border: '1px solid var(--border-subtle)' }}>
+            <div key={p.url} className="relative aspect-square rounded-lg overflow-hidden" style={{ border: i === 0 ? '2px solid #C9A44A' : '1px solid var(--border-subtle)' }}>
               <img src={p.url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+              {i === 0 && (
+                <span className="absolute bottom-0 inset-x-0 text-center font-outfit text-[0.55rem] font-semibold py-0.5" style={{ background: 'rgba(201,164,74,0.9)', color: '#060606' }}>
+                  COVER
+                </span>
+              )}
               <button
                 type="button"
                 onClick={() => removePhoto(i)}
@@ -359,7 +583,7 @@ function FormStep({ type, user, onDone, onSwitchAccount }: {
             </label>
           )}
         </div>
-      </Field>
+      </section>
 
       {error && <p className="font-outfit text-sm" style={{ color: '#EF4444' }}>{error}</p>}
 
@@ -367,6 +591,15 @@ function FormStep({ type, user, onDone, onSwitchAccount }: {
         {busy ? 'Submitting…' : 'Submit'}
       </button>
     </form>
+  )
+}
+
+function SectionTitle({ children, note }: { children: React.ReactNode; note?: string }) {
+  return (
+    <div className="pb-2" style={{ borderBottom: '1px solid rgba(201,164,74,0.15)' }}>
+      <div className="font-cinzel text-sm font-semibold" style={{ color: '#C9A44A' }}>{children}</div>
+      {note && <div className="font-outfit text-[0.7rem] mt-0.5" style={{ color: 'var(--text-f)' }}>{note}</div>}
+    </div>
   )
 }
 

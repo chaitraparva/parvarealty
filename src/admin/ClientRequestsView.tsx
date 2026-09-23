@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import {
   listRequests,
   setRequestStatus,
+  setRequestVerified,
   deleteRequest,
   type PropertyRequest,
   type RequestType,
@@ -11,7 +12,7 @@ import { isBackendConfigured } from '../lib/supabase'
 type Filter = 'all' | RequestType
 
 const TYPE_STYLE: Record<RequestType, { label: string; color: string; bg: string }> = {
-  exchange: { label: 'India → Dubai', color: '#3A72A8', bg: 'rgba(58,114,168,0.15)' },
+  exchange: { label: 'Exchange', color: '#3A72A8', bg: 'rgba(58,114,168,0.15)' },
   sell: { label: 'Sell', color: '#C9A44A', bg: 'rgba(201,164,74,0.15)' },
 }
 
@@ -28,6 +29,7 @@ export default function ClientRequestsView({ onCountChange }: { onCountChange?: 
   const [filter, setFilter] = useState<Filter>('all')
   const [lightbox, setLightbox] = useState<{ photos: string[]; index: number } | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -63,6 +65,15 @@ export default function ClientRequestsView({ onCountChange }: { onCountChange?: 
     }
   }
 
+  const toggleVerified = async (r: PropertyRequest) => {
+    try {
+      await setRequestVerified(r.id, !r.verified)
+      setItems(list => list.map(x => (x.id === r.id ? { ...x, verified: !r.verified } : x)))
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Update failed')
+    }
+  }
+
   const remove = async (r: PropertyRequest) => {
     try {
       await deleteRequest(r)
@@ -86,7 +97,7 @@ export default function ClientRequestsView({ onCountChange }: { onCountChange?: 
         <div>
           <h2 className="font-cinzel text-xl font-bold" style={{ color: '#F0EBE0' }}>Client Requests</h2>
           <p className="font-outfit text-sm mt-1" style={{ color: 'rgba(240,235,224,0.45)' }}>
-            Sell in India & buy in Dubai, and sell requests from the Property Catalogue
+            Exchange and sell requests. Verified properties show on the website under Indian Properties.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -161,6 +172,16 @@ export default function ClientRequestsView({ onCountChange }: { onCountChange?: 
                     >
                       {contacted ? 'Contacted' : 'New'}
                     </span>
+                    <span
+                      className="font-outfit text-xs font-semibold px-2.5 py-1 rounded-full"
+                      style={{
+                        background: r.verified ? 'rgba(34,168,97,0.15)' : 'rgba(255,255,255,0.05)',
+                        color: r.verified ? '#22A861' : 'rgba(240,235,224,0.5)',
+                        border: r.verified ? '1px solid rgba(34,168,97,0.4)' : '1px solid rgba(255,255,255,0.1)',
+                      }}
+                    >
+                      {r.verified ? '✓ Verified' : 'Not verified'}
+                    </span>
                   </div>
                   <span className="font-dm-mono text-[0.65rem]" style={{ color: 'rgba(240,235,224,0.4)' }}>
                     {new Date(r.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
@@ -200,6 +221,31 @@ export default function ClientRequestsView({ onCountChange }: { onCountChange?: 
                   </dd>
                 </dl>
 
+                {r.details ? (
+                  <div className="rounded-xl p-4" style={{ background: 'rgba(201,164,74,0.04)', border: '1px solid rgba(201,164,74,0.12)' }}>
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="font-cinzel text-sm font-semibold" style={{ color: '#E8C97E' }}>{r.details.propertyName}</div>
+                        <div className="font-outfit text-xs mt-0.5" style={{ color: 'rgba(240,235,224,0.55)' }}>
+                          {[r.details.propertyType, r.details.unitTypes, r.details.price].filter(Boolean).join(' · ')}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setExpanded(x => (x === r.id ? null : r.id))}
+                        className="font-outfit text-xs flex-shrink-0 underline"
+                        style={{ color: '#C9A44A' }}
+                      >
+                        {expanded === r.id ? 'Hide details' : 'All details'}
+                      </button>
+                    </div>
+                    {expanded === r.id && <ListingDetailsTable d={r.details} />}
+                  </div>
+                ) : (
+                  <div className="font-outfit text-xs" style={{ color: 'rgba(240,235,224,0.4)' }}>
+                    Old request without property details. It can't be shown on the website.
+                  </div>
+                )}
+
                 {r.photos.length > 0 && (
                   <div className="flex gap-2 flex-wrap">
                     {r.photos.map((src, i) => (
@@ -210,7 +256,19 @@ export default function ClientRequestsView({ onCountChange }: { onCountChange?: 
                   </div>
                 )}
 
-                <div className="flex items-center gap-2 mt-auto pt-1">
+                <div className="flex items-center gap-2 mt-auto pt-1 flex-wrap">
+                  <button
+                    onClick={() => toggleVerified(r)}
+                    className="font-outfit text-xs font-semibold px-3.5 py-2 rounded-lg"
+                    style={
+                      r.verified
+                        ? { border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(240,235,224,0.6)' }
+                        : { background: 'rgba(34,168,97,0.15)', border: '1px solid rgba(34,168,97,0.45)', color: '#22A861' }
+                    }
+                    title={r.verified ? 'Hide from website' : 'Show on website under Indian Properties'}
+                  >
+                    {r.verified ? 'Unverify' : '✓ Verify'}
+                  </button>
                   <button
                     onClick={() => toggleStatus(r)}
                     className="font-outfit text-xs px-3.5 py-2 rounded-lg"
@@ -264,5 +322,38 @@ export default function ClientRequestsView({ onCountChange }: { onCountChange?: 
         </div>
       )}
     </div>
+  )
+}
+
+function ListingDetailsTable({ d }: { d: NonNullable<PropertyRequest['details']> }) {
+  const rows: [string, string][] = [
+    ['Developer', d.developer],
+    ['Location', [d.location, d.city].filter(Boolean).join(', ')],
+    ['Tier', d.tier],
+    ['Price (INR)', d.price],
+    ['Price (AED)', d.priceAED],
+    ['Rental yield', d.rentalYield ? `${d.rentalYield}%` : ''],
+    ['Appreciation', d.appreciation ? `${d.appreciation}%` : ''],
+    ['Min. deposit', d.minDeposit],
+    ['Area', d.area],
+    ['Bedrooms', d.bedrooms ? String(d.bedrooms) : ''],
+    ['Floors', d.floors ? String(d.floors) : ''],
+    ['Total units', d.totalUnits ? String(d.totalUnits) : ''],
+    ['Completion', d.completion],
+    ['Handover', d.handoverQuarter],
+    ['Standout', d.standout],
+    ['Description', d.description],
+    ['Amenities', (d.amenities ?? []).join(', ')],
+    ['Payment plan', (d.paymentPlan ?? []).map(p => `${p.milestone} – ${p.pct}%`).join(' · ')],
+  ]
+  return (
+    <dl className="grid grid-cols-[110px_1fr] gap-x-3 gap-y-1.5 font-outfit text-xs mt-3 pt-3" style={{ borderTop: '1px solid rgba(201,164,74,0.12)' }}>
+      {rows.filter(([, v]) => v).map(([k, v]) => (
+        <div key={k} className="contents">
+          <dt style={{ color: 'rgba(240,235,224,0.45)' }}>{k}</dt>
+          <dd className="whitespace-pre-line" style={{ color: '#F0EBE0' }}>{v}</dd>
+        </div>
+      ))}
+    </dl>
   )
 }

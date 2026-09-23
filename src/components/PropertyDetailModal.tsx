@@ -29,13 +29,17 @@ export type Property = {
   handoverQuarter: string
   minDeposit: string
   description: string
+  country?: 'Dubai' | 'India' // missing = Dubai
 }
+
+// Only Unsplash images accept resize params (signed photo URLs would break)
+const sized = (src: string, q: string) => (src.includes('images.unsplash.com') ? `${src}?${q}` : src)
 
 const tierConfig = {
   'Entry / Value': { color: '#4A7C59', border: 'rgba(74,124,89,0.4)' },
-  'Mid-Range':     { color: '#3A72A8', border: 'rgba(58,114,168,0.4)' },
-  'Premium':       { color: '#7B5EA7', border: 'rgba(123,94,167,0.4)' },
-  'Luxury':        { color: '#C9A44A', border: 'rgba(201,164,74,0.4)' },
+  'Mid-Range': { color: '#3A72A8', border: 'rgba(58,114,168,0.4)' },
+  'Premium': { color: '#7B5EA7', border: 'rgba(123,94,167,0.4)' },
+  'Luxury': { color: '#C9A44A', border: 'rgba(201,164,74,0.4)' },
 }
 
 type Props = { property: Property; onClose: () => void; onEnquire?: (p: Property) => void }
@@ -196,7 +200,7 @@ function EnquiryForm({ property, onSuccess }: { property: Property; onSuccess: (
         >
           {form.visitInterest && (
             <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-              <path d="M2 6l3 3 5-5" stroke="#C9A44A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M2 6l3 3 5-5" stroke="#C9A44A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           )}
         </div>
@@ -222,8 +226,8 @@ function EnquirySuccess({ property, onClose }: { property: Property; onClose: ()
         style={{ background: 'rgba(34,168,97,0.15)', border: '1.5px solid rgba(34,168,97,0.3)' }}
       >
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22A861" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
-          <polyline points="22 4 12 14.01 9 11.01"/>
+          <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
         </svg>
       </div>
       <div>
@@ -291,14 +295,14 @@ export default function PropertyDetailModal({ property: p, onClose }: Props) {
           style={{ background: 'rgba(6,6,6,0.7)', border: '1px solid rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-m)" strokeWidth="2.5">
-            <path d="M18 6L6 18M6 6l12 12"/>
+            <path d="M18 6L6 18M6 6l12 12" />
           </svg>
         </button>
 
         {/* Hero image */}
         <div className="relative h-64 sm:h-80 flex-shrink-0 bg-[#111]">
           <img
-            src={allImages[activeImg].startsWith('http') ? `${allImages[activeImg]}?w=900&h=400&fit=crop&auto=format` : allImages[activeImg]}
+            src={sized(allImages[activeImg], 'w=900&h=400&fit=crop&auto=format')}
             alt={p.name}
             className="w-full h-full object-cover transition-opacity duration-300"
           />
@@ -329,7 +333,7 @@ export default function PropertyDetailModal({ property: p, onClose }: Props) {
                     opacity: activeImg === i ? 1 : 0.6,
                   }}
                 >
-                  <img src={img.startsWith('http') ? `${img}?w=80&h=56&fit=crop` : img} className="w-full h-full object-cover" loading="lazy" alt="" />
+                  <img src={sized(img, 'w=80&h=56&fit=crop')} className="w-full h-full object-cover" loading="lazy" alt="" />
                 </button>
               ))}
             </div>
@@ -341,12 +345,12 @@ export default function PropertyDetailModal({ property: p, onClose }: Props) {
               <button onClick={() => setActiveImg(i => (i - 1 + allImages.length) % allImages.length)}
                 className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center"
                 style={{ background: 'rgba(6,6,6,0.6)', border: '1px solid rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-b)" strokeWidth="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-b)" strokeWidth="2.5"><path d="M15 18l-6-6 6-6" /></svg>
               </button>
               <button onClick={() => setActiveImg(i => (i + 1) % allImages.length)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center"
                 style={{ background: 'rgba(6,6,6,0.6)', border: '1px solid rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-b)" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-b)" strokeWidth="2.5"><path d="M9 18l6-6-6-6" /></svg>
               </button>
             </>
           )}
@@ -359,7 +363,7 @@ export default function PropertyDetailModal({ property: p, onClose }: Props) {
               <h2 className="font-cinzel text-2xl sm:text-3xl font-bold leading-tight" style={{ color: 'var(--text-h)' }}>{p.name}</h2>
               <div className="flex items-center gap-4 mt-1.5 flex-wrap">
                 <div className="flex items-center gap-1.5">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#C9A44A" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#C9A44A" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" /></svg>
                   <span className="font-outfit text-xs" style={{ color: 'var(--text-m)' }}>{p.location}</span>
                 </div>
                 <span className="font-dm-mono text-[0.6rem]" style={{ color: 'var(--text-ff)' }}>by {p.developer}</span>
@@ -451,7 +455,7 @@ export default function PropertyDetailModal({ property: p, onClose }: Props) {
                   {p.amenities.map(a => (
                     <span key={a} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-outfit text-[0.68rem]"
                       style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--text-m)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                      <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#C9A44A" opacity="0.5"/></svg>
+                      <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#C9A44A" opacity="0.5" /></svg>
                       {a}
                     </span>
                   ))}

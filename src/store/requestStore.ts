@@ -4,9 +4,38 @@
 // Demo mode  → browser localStorage (only when Supabase env keys are not set)
 // ─────────────────────────────────────────────────────────────────────────────
 import { supabase } from '../lib/supabase'
+import type { Property } from '../components/PropertyDetailModal'
 
 export type RequestType = 'exchange' | 'sell'
 export type RequestStatus = 'new' | 'contacted'
+
+export type Tier = 'Entry / Value' | 'Mid-Range' | 'Premium' | 'Luxury'
+
+/** Property listing details the client fills in (same fields as the admin property form). */
+export interface ListingDetails {
+  propertyName: string
+  developer: string
+  location: string
+  city: string
+  propertyType: string
+  unitTypes: string
+  tier: Tier
+  price: string
+  priceAED: string
+  rentalYield: number
+  appreciation: number
+  minDeposit: string
+  area: string
+  completion: string
+  floors: number
+  totalUnits: number
+  bedrooms: number
+  handoverQuarter: string
+  standout: string
+  description: string
+  amenities: string[]
+  paymentPlan: { milestone: string; pct: number }[]
+}
 
 export interface ClientUser {
   email: string
@@ -25,6 +54,8 @@ export interface PropertyRequest {
   photos: string[] // displayable URLs
   photoPaths: string[] // storage paths (live mode)
   status: RequestStatus
+  verified: boolean
+  details: ListingDetails | null
 }
 
 export interface NewRequest {
@@ -34,6 +65,7 @@ export interface NewRequest {
   phone: string
   address: string
   location: string
+  details: ListingDetails
   photos: Blob[]
 }
 
@@ -168,6 +200,7 @@ export async function submitRequest(req: NewRequest): Promise<void> {
       phone: req.phone,
       property_address: req.address,
       property_location: req.location,
+      details: req.details,
       photo_paths: paths,
       owner_confirmed: req.type === 'exchange',
       fee_accepted: req.type === 'sell',
@@ -191,6 +224,8 @@ export async function submitRequest(req: NewRequest): Promise<void> {
     photos,
     photoPaths: [],
     status: 'new',
+    verified: false,
+    details: req.details,
   })
   try {
     localStorage.setItem(LOCAL_REQUESTS, JSON.stringify(list))
@@ -222,6 +257,8 @@ type Row = {
   property_location: string
   photo_paths: string[] | null
   status: RequestStatus
+  verified: boolean | null
+  details: ListingDetails | null
 }
 
 export async function listRequests(): Promise<PropertyRequest[]> {
@@ -251,9 +288,92 @@ export async function listRequests(): Promise<PropertyRequest[]> {
       photoPaths: r.photo_paths ?? [],
       photos: (r.photo_paths ?? []).map(p => urlByPath.get(p)).filter((u): u is string => !!u),
       status: r.status,
+      verified: !!r.verified,
+      details: r.details,
     }))
   }
-  return readLocal<PropertyRequest[]>(LOCAL_REQUESTS, [])
+  return readLocal<PropertyRequest[]>(LOCAL_REQUESTS, []).map(r => ({ ...r, verified: !!r.verified, details: r.details ?? null }))
+}
+
+/** Admin: mark a request verified (shows on the website) or not verified (hidden). */
+export async function setRequestVerified(id: string, verified: boolean): Promise<void> {
+  if (supabase) {
+    const { error } = await supabase
+      .from(TABLE)
+      .update({ verified, verified_at: verified ? new Date().toISOString() : null })
+      .eq('id', id)
+    if (error) throw new Error(error.message)
+    return
+  }
+  const list = readLocal<PropertyRequest[]>(LOCAL_REQUESTS, []).map(r => (r.id === id ? { ...r, verified } : r))
+  localStorage.setItem(LOCAL_REQUESTS, JSON.stringify(list))
+}
+
+// ─── Public website: verified Indian properties ─────────────────────────────
+// Only listing details + photos are public. Name, email, mobile and address are never sent.
+
+/** Stable numeric id from a uuid (the catalogue uses numeric ids). */
+function numericId(uuid: string): number {
+  return parseInt(uuid.replace(/-/g, '').slice(0, 12), 16)
+}
+
+function toProperty(id: string, d: ListingDetails, photos: string[]): Property {
+  const location = [d.location, d.city].filter(Boolean).join(', ')
+  return {
+    id: numericId(id),
+    name: d.propertyName,
+    location,
+    type: d.propertyType,
+    bedrooms: d.bedrooms || 0,
+    unitTypes: d.unitTypes,
+    area: d.area,
+    price: d.price,
+    priceAED: d.priceAED,
+    rentalYield: d.rentalYield || 0,
+    appreciation: d.appreciation || 0,
+    developer: d.developer || 'Owner',
+    completion: d.completion || '—',
+    tag: 'VERIFIED',
+    tagCol: '#22A861',
+    tier: d.tier,
+    standout: d.standout || d.description,
+    description: d.description,
+    image: photos[0] ?? '',
+    gallery: photos.slice(1),
+    zone: d.city,
+    views: 0,
+    floors: d.floors || 0,
+    totalUnits: d.totalUnits || 0,
+    amenities: d.amenities ?? [],
+    paymentPlan: d.paymentPlan ?? [],
+    handoverQuarter: d.handoverQuarter || '—',
+    minDeposit: d.minDeposit || '—',
+    country: 'India',
+  }
+}
+
+export async function listVerifiedIndianProperties(): Promise<Property[]> {
+  try {
+    if (supabase) {
+      const { data, error } = await supabase.rpc('get_verified_indian_properties')
+      if (error || !data) return []
+      const rows = data as { id: string; details: ListingDetails; photo_paths: string[] | null }[]
+      const allPaths = rows.flatMap(r => r.photo_paths ?? [])
+      const urlByPath = new Map<string, string>()
+      if (allPaths.length) {
+        const { data: signed } = await supabase.storage.from(BUCKET).createSignedUrls(allPaths, 60 * 60 * 24)
+        signed?.forEach(s => { if (s.path && s.signedUrl) urlByPath.set(s.path, s.signedUrl) })
+      }
+      return rows
+        .map(r => toProperty(r.id, r.details, (r.photo_paths ?? []).map(p => urlByPath.get(p)).filter((u): u is string => !!u)))
+        .filter(p => p.image)
+    }
+    return readLocal<PropertyRequest[]>(LOCAL_REQUESTS, [])
+      .filter(r => r.verified && r.details && r.photos.length)
+      .map(r => toProperty(r.id, r.details!, r.photos))
+  } catch {
+    return []
+  }
 }
 
 export async function setRequestStatus(id: string, status: RequestStatus): Promise<void> {
