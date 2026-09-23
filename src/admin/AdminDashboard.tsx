@@ -16,6 +16,8 @@ import {
 import type { AdminUser, ActivityEntry } from '../store/propertyStore'
 import type { Property } from '../components/PropertyDetailModal'
 import logoImg from '../imports/logo.png'
+import ClientRequestsView from './ClientRequestsView'
+import { listRequests, adminBackendSignOut } from '../store/requestStore'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const TIERS = ['Entry / Value', 'Mid-Range', 'Premium', 'Luxury'] as const
@@ -168,7 +170,7 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type EditState = (Omit<Property, 'id'> & { id?: number }) | null
-type Tab = 'properties' | 'activity' | 'admins'
+type Tab = 'properties' | 'requests' | 'activity' | 'admins'
 
 // ─── Property Editor View ─────────────────────────────────────────────────────
 function PropertyEditor({
@@ -646,17 +648,19 @@ export default function AdminDashboard() {
   const [saved, setSaved] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null)
   const [activeTab, setActiveTab] = useState<Tab>('properties')
+  const [newRequests, setNewRequests] = useState(0)
   const [session, setSession] = useState<{ email: string; name: string; role: 'super-admin' | 'admin' } | null>(null)
 
   useEffect(() => {
     if (!isAdminLoggedIn()) { navigate('/admin/login'); return }
     setProperties(getProperties())
     setSession(getAdminSession())
+    listRequests().then(l => setNewRequests(l.filter(r => r.status === 'new').length)).catch(() => {})
   }, [navigate])
 
   const isSuperAdmin = session?.role === 'super-admin'
 
-  const logout = () => { adminLogout(); navigate('/admin/login') }
+  const logout = async () => { adminLogout(); await adminBackendSignOut(); navigate('/admin/login') }
 
   const startEdit = (p: Property) => { setEditing({ ...p, gallery: [...(p.gallery as string[])] }); setIsNew(false) }
 
@@ -706,6 +710,7 @@ export default function AdminDashboard() {
 
   const TABS: { id: Tab; label: string; superOnly?: boolean }[] = [
     { id: 'properties', label: 'Properties' },
+    { id: 'requests', label: 'Client Requests' },
     { id: 'activity', label: 'Activity Log', superOnly: true },
     { id: 'admins', label: 'Manage Admins', superOnly: true },
   ]
@@ -773,6 +778,11 @@ export default function AdminDashboard() {
             }}
           >
             {tab.label}
+            {tab.id === 'requests' && newRequests > 0 && (
+              <span className="ml-1.5 font-outfit text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full align-middle" style={{ background: '#C9A44A', color: '#060606' }}>
+                {newRequests}
+              </span>
+            )}
             {tab.superOnly && (
               <span className="ml-1.5 font-dm-mono text-[0.4rem] tracking-widest px-1.5 py-0.5 rounded-full align-middle" style={{ background: 'rgba(201,164,74,0.15)', color: '#C9A44A' }}>
                 SA
@@ -881,6 +891,8 @@ export default function AdminDashboard() {
         )}
 
         {/* ACTIVITY LOG TAB (super-admin only) */}
+        {activeTab === 'requests' && <ClientRequestsView onCountChange={setNewRequests} />}
+
         {activeTab === 'activity' && isSuperAdmin && <ActivityLogView />}
 
         {/* MANAGE ADMINS TAB (super-admin only) */}

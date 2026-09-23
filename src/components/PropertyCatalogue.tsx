@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useInView } from '../hooks/useInView'
 import PropertyDetailModal, { type Property } from './PropertyDetailModal'
 import { getProperties } from '../store/propertyStore'
+import OwnerRequests from './OwnerRequests'
 // Append Unsplash sizing params only for remote URLs; leave local assets untouched
 const imgSrc = (src: string, w: number, h: number) =>
   src.startsWith('http') ? `${src}?w=${w}&h=${h}&fit=crop&auto=format` : src
@@ -187,6 +188,9 @@ export default function PropertyCatalogue() {
               12 personally vetted off-plan projects across four investment tiers. Select up to 3 to compare side-by-side.
             </p>
           </div>
+
+          {/* Owner options: Exchange / Sell your property */}
+          <OwnerRequests />
 
           {/* Filter panel */}
           <div className={`glass rounded-2xl p-5 mb-8 ${visible ? 'in-view-scale d-1' : ''}`}>

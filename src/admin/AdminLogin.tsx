@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { adminLogin } from '../store/propertyStore'
+import { adminBackendSignIn } from '../store/requestStore'
 import logoImg from '../imports/logo.png'
 
 export default function AdminLogin() {
@@ -14,8 +15,11 @@ export default function AdminLogin() {
     e.preventDefault()
     setLoading(true)
     setError('')
-    setTimeout(() => {
+    setTimeout(async () => {
       if (adminLogin(email, password)) {
+        // Also sign in to the database so client requests can be read
+        // (if this fails, the Client Requests tab shows what to fix; property management still works)
+        await adminBackendSignIn(email, password)
         navigate('/admin')
       } else {
         setError('Invalid email or password. Please try again.')
