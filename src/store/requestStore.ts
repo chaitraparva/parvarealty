@@ -17,6 +17,7 @@ export interface PropertyRequest {
   id: string
   createdAt: string
   type: RequestType
+  name: string
   email: string
   phone: string
   address: string
@@ -28,6 +29,7 @@ export interface PropertyRequest {
 
 export interface NewRequest {
   type: RequestType
+  name: string
   email: string
   phone: string
   address: string
@@ -161,6 +163,7 @@ export async function submitRequest(req: NewRequest): Promise<void> {
     const { error } = await supabase.from(TABLE).insert({
       user_id: uid,
       request_type: req.type,
+      full_name: req.name,
       email: req.email,
       phone: req.phone,
       property_address: req.address,
@@ -180,6 +183,7 @@ export async function submitRequest(req: NewRequest): Promise<void> {
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
     type: req.type,
+    name: req.name,
     email: req.email,
     phone: req.phone,
     address: req.address,
@@ -211,6 +215,7 @@ type Row = {
   id: string
   created_at: string
   request_type: RequestType
+  full_name: string | null
   email: string
   phone: string
   property_address: string
@@ -238,6 +243,7 @@ export async function listRequests(): Promise<PropertyRequest[]> {
       id: r.id,
       createdAt: r.created_at,
       type: r.request_type,
+      name: r.full_name ?? '',
       email: r.email,
       phone: r.phone,
       address: r.property_address,

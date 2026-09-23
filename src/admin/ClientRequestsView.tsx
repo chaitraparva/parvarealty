@@ -11,12 +11,13 @@ import { isBackendConfigured } from '../lib/supabase'
 type Filter = 'all' | RequestType
 
 const TYPE_STYLE: Record<RequestType, { label: string; color: string; bg: string }> = {
-  exchange: { label: 'Exchange', color: '#3A72A8', bg: 'rgba(58,114,168,0.15)' },
+  exchange: { label: 'India → Dubai', color: '#3A72A8', bg: 'rgba(58,114,168,0.15)' },
   sell: { label: 'Sell', color: '#C9A44A', bg: 'rgba(201,164,74,0.15)' },
 }
 
 function waLink(phone: string) {
-  const digits = phone.replace(/[^0-9]/g, '')
+  let digits = phone.replace(/[^0-9]/g, '')
+  if (digits.length === 10) digits = '91' + digits // Indian number typed without country code
   return `https://wa.me/${digits}`
 }
 
@@ -85,7 +86,7 @@ export default function ClientRequestsView({ onCountChange }: { onCountChange?: 
         <div>
           <h2 className="font-cinzel text-xl font-bold" style={{ color: '#F0EBE0' }}>Client Requests</h2>
           <p className="font-outfit text-sm mt-1" style={{ color: 'rgba(240,235,224,0.45)' }}>
-            Exchange and sell requests submitted from the Property Catalogue
+            Sell in India & buy in Dubai, and sell requests from the Property Catalogue
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -167,6 +168,8 @@ export default function ClientRequestsView({ onCountChange }: { onCountChange?: 
                 </div>
 
                 <dl className="grid grid-cols-[110px_1fr] gap-x-3 gap-y-2 font-outfit text-sm">
+                  <dt style={{ color: 'rgba(240,235,224,0.45)' }}>Name</dt>
+                  <dd className="font-semibold" style={{ color: '#F0EBE0' }}>{r.name || '—'}</dd>
                   <dt style={{ color: 'rgba(240,235,224,0.45)' }}>Email</dt>
                   <dd><a href={`mailto:${r.email}`} className="hover:underline" style={{ color: '#E8C97E' }}>{r.email}</a></dd>
                   <dt style={{ color: 'rgba(240,235,224,0.45)' }}>Mobile</dt>

@@ -16,9 +16,9 @@ const MAX_PHOTOS = 10
 const OPTIONS: { type: RequestType; title: string; text: string; cta: string }[] = [
   {
     type: 'exchange',
-    title: 'Exchange Your Property',
-    text: 'Own a property and want to exchange it? Share the details and photos with us. For owners only.',
-    cta: 'Exchange Property',
+    title: 'Sell in India, Buy in Dubai',
+    text: 'Own a property in India and want to buy a property in Dubai? Share your India property details and photos with us. For owners only.',
+    cta: 'Get Started',
   },
   {
     type: 'sell',
@@ -88,7 +88,7 @@ function RequestModal({ type, onClose }: { type: RequestType; onClose: () => voi
     }
   }, [onClose])
 
-  const title = type === 'exchange' ? 'Exchange Your Property' : 'Sell Your Property'
+  const title = type === 'exchange' ? 'Sell in India, Buy in Dubai' : 'Sell Your Property'
 
   const continueFromIntro = () => setStep(user ? 'form' : 'auth')
 
@@ -257,6 +257,7 @@ function FormStep({ type, user, onDone, onSwitchAccount }: {
   onDone: () => void
   onSwitchAccount: () => void
 }) {
+  const [name, setName] = useState('')
   const [phone, setPhone] = useState(user.phone)
   const [address, setAddress] = useState('')
   const [location, setLocation] = useState('')
@@ -290,6 +291,7 @@ function FormStep({ type, user, onDone, onSwitchAccount }: {
     try {
       await submitRequest({
         type,
+        name: name.trim(),
         email: user.email,
         phone: phone.trim(),
         address: address.trim(),
@@ -305,6 +307,9 @@ function FormStep({ type, user, onDone, onSwitchAccount }: {
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
+      <Field label="Full name">
+        <input type="text" required value={name} onChange={e => setName(e.target.value)} autoComplete="name" placeholder="Your full name" />
+      </Field>
       <Field label="Email">
         <input type="email" value={user.email} readOnly style={{ opacity: 0.7 }} />
         <button type="button" onClick={onSwitchAccount} className="font-outfit text-xs mt-1.5 underline" style={{ color: 'var(--text-f)' }}>
