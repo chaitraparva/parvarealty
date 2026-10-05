@@ -14,11 +14,13 @@ import KnowledgeHub from './components/KnowledgeHub'
 import Schedule from './components/Schedule'
 import AIConcierge from './components/AIConcierge'
 import Footer from './components/Footer'
+import SoldTeaser from './components/SoldTeaser'
 
 function AppInner() {
   return (
     <div className="min-h-screen relative" style={{ background: 'var(--bg-a)' }}>
       <div className="noise-bg" aria-hidden="true" />
+      <SoldTeaser />
       <Nav />
       <main>
         <section id="hero"><Hero /></section>

@@ -66,6 +66,7 @@ export default function Nav() {
     <header
       className="fixed top-0 inset-x-0 z-50 transition-all duration-500"
       style={{
+        top: 'var(--sold-strip-h, 0px)',
         background: scrolled ? 'var(--nav-bg)' : 'transparent',
         backdropFilter: scrolled ? 'blur(32px)' : 'none',
         WebkitBackdropFilter: scrolled ? 'blur(32px)' : 'none',
