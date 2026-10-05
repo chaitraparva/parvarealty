@@ -98,15 +98,13 @@ export default function SoldTeaser() {
         <span className="whitespace-nowrap">
           {time.done ? 'Revealed today' : `Revealed in ${time.days} day${time.days === 1 ? '' : 's'}`} · 25 October
         </span>
-        <a
-          href={GUESS_WHATSAPP_URL}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          onClick={() => setOpen(true)}
           className="ml-1 sm:ml-2 underline underline-offset-[3px] whitespace-nowrap"
           style={{ color: '#E8C97E' }}
         >
           Guess &amp; win →
-        </a>
+        </button>
       </div>
 
       {/* Small floating countdown — bottom-left (WhatsApp/chat buttons are bottom-right) */}
@@ -185,7 +183,7 @@ export default function SoldTeaser() {
             >
               <div
                 className="w-[92px] h-[92px] rounded-full mx-auto mb-4 flex items-center justify-center font-cinzel text-[44px] transition-transform duration-300 group-hover:scale-105"
-                style={{ border: '1px solid rgba(201,164,74,0.5)', color: '#E8C97E', boxShadow: '0 0 40px rgba(201,164,74,0.25)' }}
+                style={{ width: 92, height: 92, borderRadius: '50%', border: '1px solid rgba(201,164,74,0.5)', color: '#E8C97E', boxShadow: '0 0 40px rgba(201,164,74,0.25)' }}
               >
                 ?
               </div>
