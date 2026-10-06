@@ -121,7 +121,7 @@ export default function SoldTeaser() {
           color: '#F0EBE0',
         }}
       >
-        <span className="font-cinzel tracking-[0.08em] sm:tracking-[0.12em] whitespace-nowrap" style={{ color: '#E8C97E', fontWeight: 600 }}>PARVA IS EVOLVING.</span>
+        <span className="font-cinzel tracking-[0.08em] sm:tracking-[0.12em] whitespace-nowrap" style={{ color: '#E8C97E', fontWeight: 600 }}>PARVA IS EVOLVING</span>
         <span className="hidden sm:inline">Guess who's joined the Parva Group?</span>
         <span className="whitespace-nowrap">
           {time.done ? 'Revealed today' : `${time.days} day${time.days === 1 ? '' : 's'}`}
@@ -196,7 +196,7 @@ export default function SoldTeaser() {
                 textTransform: 'uppercase',
               }}
             >
-              Parva Is Evolving.
+              Parva Is Evolving
             </h1>
             </div>
 
