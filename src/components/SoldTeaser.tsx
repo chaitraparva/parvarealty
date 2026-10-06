@@ -93,7 +93,7 @@ export default function SoldTeaser() {
           color: '#F0EBE0',
         }}
       >
-        <span className="font-cinzel tracking-[0.08em] sm:tracking-[0.12em] whitespace-nowrap" style={{ color: '#E8C97E', fontWeight: 600 }}>WE'RE SOLD.</span>
+        <span className="font-cinzel tracking-[0.08em] sm:tracking-[0.12em] whitespace-nowrap" style={{ color: '#E8C97E', fontWeight: 600 }}>WE'RE SOLD</span>
         <span className="hidden sm:inline">Guess who bought Parva Group?</span>
         <span className="whitespace-nowrap">
           {time.done ? 'Revealed today' : `${time.days} day${time.days === 1 ? '' : 's'}`}
@@ -165,7 +165,7 @@ export default function SoldTeaser() {
                 color: 'transparent',
               }}
             >
-              We're Sold.
+              We're Sold
             </h1>
 
             <p
