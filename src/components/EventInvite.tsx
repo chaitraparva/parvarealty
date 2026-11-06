@@ -27,21 +27,30 @@ const CSS = `
 .ev-in::placeholder{color:rgba(240,235,224,0.35)}
 .ev-frame{position:fixed;inset:10px;border:1px solid rgba(201,164,74,0.32);pointer-events:none;z-index:25;box-shadow:inset 0 0 0 6px rgba(0,0,0,0),inset 0 0 0 7px rgba(201,164,74,0.10)}
 .ev-wrap{position:relative;min-height:100%;display:flex;flex-direction:column}
-.ev-photo-box{position:relative;width:100%;height:40vh;height:40svh;min-height:230px;flex:none;overflow:hidden}
+.ev-photo-box{position:relative;width:100%;height:28vh;height:28svh;min-height:180px;margin-top:66px;flex:none;overflow:hidden}
+@media (max-width:599px) and (max-height:700px){.ev-photo-box{height:21vh;height:21svh;min-height:130px;margin-top:56px}.ev-chips{margin-top:10px}.ev-when{margin-top:12px}.ev-actions{margin-top:14px;gap:8px}.ev-stats{margin-top:10px}.ev-text{padding-bottom:16px}}
+@media (max-width:599px){.ev-text{flex:none}.ev-wrap{justify-content:center;min-height:100vh;min-height:100svh}}
 .ev-glow{position:absolute;left:15%;right:15%;top:8%;bottom:10%;border-radius:50%;background:radial-gradient(circle,rgba(232,201,126,0.30),transparent 68%);filter:blur(10px)}
 .ev-photo-resp{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 14%;
   -webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 14%,#000 62%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0%,#000 14%,#000 62%,transparent 100%)}
-.ev-brand{position:absolute;top:26px;left:0;right:0;z-index:3;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;font-size:22px}
+.ev-brand{position:absolute;top:24px;left:0;right:0;z-index:3;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;font-size:22px}
 .ev-brand-bar{width:1px;height:20px;background:rgba(201,164,74,0.6)}
 .ev-brand-group{font-size:11px;letter-spacing:0.4em;color:rgba(240,235,224,0.8)}
 .ev-brand-presents{font-style:italic;font-size:18px;color:#E8C97E}
-.ev-text{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:0 20px 28px;margin-top:-44px}
+.ev-text{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:0 20px 28px;margin-top:-10px}
 .ev-br{display:none}
-.ev-eyebrow{display:flex;align-items:center;gap:12px;font-size:11.5px;letter-spacing:0.3em;color:#D4AF5A;font-weight:600}
-.ev-line{width:34px;height:1.5px;background:#C9A44A;flex:none}
+.ev-eyebrow{display:flex;align-items:center;gap:10px;white-space:nowrap;font-size:clamp(9px,2.7vw,11.5px);letter-spacing:0.22em;color:#D4AF5A;font-weight:600}
+.ev-line{width:22px;height:1.5px;background:#C9A44A;flex:none}
 .ev-tagline{font-style:italic;font-size:clamp(1.05rem,4.6vw,1.6rem);line-height:1.2;margin-top:10px;color:#F0EBE0}
 .ev-name{font-weight:700;font-size:clamp(2.3rem,11.4vw,5rem);line-height:0.95;margin:8px 0 0;letter-spacing:0.01em;white-space:nowrap}
 .ev-facts{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 8px;margin-top:10px;font-size:clamp(9.5px,2.6vw,12.5px);letter-spacing:0.14em;color:rgba(240,235,224,0.82);font-weight:600}
+.ev-stats{display:flex;justify-content:center;margin-top:14px;width:100%;max-width:440px}
+.ev-stat{flex:1;text-align:center;padding:0 6px}
+.ev-stat+.ev-stat{border-left:1px solid rgba(201,164,74,0.35)}
+.ev-stat-n{font-weight:700;font-size:clamp(1.7rem,7.5vw,2.4rem);line-height:1;font-variant-numeric:lining-nums}
+.ev-stat-l{margin-top:5px;font-size:clamp(8px,2.3vw,10px);letter-spacing:0.14em;line-height:1.45;color:rgba(240,235,224,0.8);font-weight:600}
+.ev-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:14px}
+.ev-chips span{padding:6px 12px;border:1px solid rgba(201,164,74,0.45);border-radius:999px;font-size:clamp(10px,2.8vw,12px);letter-spacing:0.06em;color:#E8C97E;background:rgba(201,164,74,0.06);white-space:nowrap}
 .ev-when{display:flex;flex-direction:row;align-items:center;gap:14px;margin-top:16px;max-width:560px;text-align:left}
 .ev-datebox{width:84px;padding:7px 0 6px;border:1px solid rgba(201,164,74,0.6);background:rgba(201,164,74,0.06);text-align:center;flex:none}
 .ev-date-sm{font-size:10px;letter-spacing:0.3em;padding-left:0.3em;font-weight:600}
@@ -56,15 +65,18 @@ const CSS = `
 .ev-continue{margin-top:6px;font-size:13px;letter-spacing:0.1em;color:rgba(240,235,224,0.7);text-decoration:underline;text-underline-offset:5px}
 
 /* Tablet portrait: a little more air */
+@media (max-width:599px){
+  .ev-brand{gap:9px;font-size:17px}.ev-brand-group{font-size:9.5px;letter-spacing:0.32em}.ev-brand-presents{font-size:14px}.ev-brand-bar{height:15px}
+}
 @media (min-width:600px){
-  .ev-photo-box{height:48vh;height:48svh}
+  .ev-photo-box{height:36vh;height:36svh}
   .ev-text{justify-content:center;padding-bottom:44px}
   .ev-name{font-size:clamp(3.6rem,10vw,6rem)}
   .ev-tagline{margin-top:14px}.ev-facts{margin-top:16px}
   .ev-datebox{width:112px;padding:10px 0 9px}.ev-date-big{font-size:48px}.ev-date-sm{font-size:11px}
   .ev-cta{height:62px}.ev-actions{margin-top:26px}
   .ev-eyebrow{font-size:13px}.ev-line{width:48px}
-  .ev-facts{font-size:13px}
+  .ev-stat-n{font-size:2.8rem}.ev-stat-l{font-size:11px}.ev-stats{max-width:520px;margin-top:20px}.ev-chips span{font-size:13px}
   .ev-when{flex-direction:row;text-align:left;gap:26px}
   .ev-msg{text-align:left}
   .ev-actions{flex-direction:row;justify-content:center;gap:30px}
@@ -75,29 +87,33 @@ const CSS = `
 @media (min-width:900px) and (min-aspect-ratio:11/10){
   .ev-frame{inset:18px}
   .ev-wrap{flex-direction:row-reverse;min-height:100vh;min-height:100svh}
-  .ev-photo-box{width:46%;height:auto;min-height:100vh;min-height:100svh}
+  .ev-photo-box{width:clamp(280px,30vw,760px);height:74vh;height:74svh;min-height:0;align-self:center;margin:0 6vw 0 0;flex:none}
   .ev-glow{left:5%;right:5%;top:5%;bottom:20%}
   .ev-photo-resp{object-position:center 12%;
-    -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 36%),linear-gradient(to bottom,#000 82%,transparent 100%);-webkit-mask-composite:source-in;
-    mask-image:linear-gradient(to right,transparent 0%,#000 36%),linear-gradient(to bottom,#000 82%,transparent 100%);mask-composite:intersect}
+    -webkit-mask-image:radial-gradient(ellipse 50% 50% at 50% 46%,#000 62%,transparent 100%);mask-image:radial-gradient(ellipse 50% 50% at 50% 46%,#000 62%,transparent 100%)}
   .ev-brand{top:6vh;left:6vw;right:auto;justify-content:flex-start;font-size:clamp(22px,1.9vw,34px)}
   .ev-brand-bar{height:clamp(20px,1.6vw,30px)}
   .ev-brand-group{font-size:clamp(11px,0.85vw,15px)}
   .ev-brand-presents{font-size:clamp(17px,1.4vw,24px)}
-  .ev-text{align-items:flex-start;text-align:left;margin-top:0;padding:clamp(90px,15vh,170px) 2vw clamp(40px,7vh,90px) 6vw}
-  .ev-eyebrow{font-size:clamp(12px,0.95vw,17px)}
+  .ev-text{align-items:flex-start;text-align:left;margin-top:0;padding:clamp(80px,12vh,160px) 2vw clamp(30px,5vh,80px) 6vw}
+  .ev-eyebrow{font-size:clamp(12px,0.95vw,17px);letter-spacing:0.3em}
   .ev-line-end{display:none}
   .ev-line{width:clamp(40px,3vw,60px)}
   .ev-tagline{font-size:clamp(1.3rem,min(2.3vw,4.2vh),2.6rem);margin-top:clamp(12px,2.6vh,30px)}
   .ev-br{display:inline}
-  .ev-name{font-size:clamp(4rem,min(7.4vw,14.5vh),9rem);line-height:0.9;margin-top:clamp(8px,2vh,24px);white-space:normal}
-  .ev-facts{justify-content:flex-start;font-size:clamp(11px,0.9vw,16px);letter-spacing:0.22em;margin-top:clamp(12px,2.4vh,26px)}
-  .ev-when{flex-direction:row;align-items:center;max-width:min(52vw,900px);gap:clamp(18px,2vw,36px);margin-top:clamp(20px,4.5vh,52px)}
+  .ev-name{font-size:clamp(3.4rem,min(6.4vw,11.5vh),8rem);line-height:0.9;margin-top:clamp(8px,2vh,24px);white-space:normal}
+  .ev-stats{justify-content:flex-start;max-width:min(40vw,760px);margin-top:clamp(14px,2.8vh,34px)}
+  .ev-stat{text-align:left;padding:0 clamp(14px,1.6vw,30px)}.ev-stat:first-child{padding-left:0}
+  .ev-stat-n{font-size:clamp(2.2rem,min(3.2vw,6vh),4.6rem)}
+  .ev-stat-l{font-size:clamp(10px,0.75vw,14px)}
+  .ev-chips{justify-content:flex-start;margin-top:clamp(14px,2.6vh,30px);gap:clamp(8px,0.8vw,14px)}
+  .ev-chips span{font-size:clamp(12px,0.85vw,16px);padding:clamp(6px,0.9vh,11px) clamp(12px,1.1vw,20px)}
+  .ev-when{flex-direction:row;align-items:center;max-width:min(52vw,900px);gap:clamp(18px,2vw,36px);margin-top:clamp(16px,3vh,44px)}
   .ev-datebox{width:clamp(110px,8.5vw,160px);padding:clamp(8px,1.4vh,16px) 0}
   .ev-date-sm{font-size:clamp(11px,0.8vw,14px)}
   .ev-date-big{font-size:clamp(44px,min(3.8vw,7.2vh),70px)}
   .ev-msg{font-size:clamp(1.05rem,min(1.5vw,2.9vh),1.75rem)}
-  .ev-actions{flex-direction:row;justify-content:flex-start;align-items:center;gap:clamp(20px,2vw,36px);margin-top:clamp(22px,4.5vh,50px);width:auto}
+  .ev-actions{flex-direction:row;justify-content:flex-start;align-items:center;gap:clamp(20px,2vw,36px);margin-top:clamp(18px,3.4vh,46px);width:auto}
   .ev-cta{width:auto;height:clamp(56px,7.5vh,80px);padding:0 clamp(28px,2.4vw,44px);font-size:clamp(14px,1vw,19px)}
   .ev-actions-side{text-align:left}
   .ev-invite-only{font-size:clamp(11px,0.75vw,14px)}
@@ -111,14 +127,15 @@ const CSS = `
 /* Landscape phones (wide but short, under 900px): side by side, compact */
 @media (max-width:899px) and (orientation:landscape) and (max-height:500px){
   .ev-wrap{flex-direction:row-reverse}
-  .ev-photo-box{width:42%;height:auto;min-height:100vh}
+  .ev-photo-box{width:42%;height:auto;min-height:100vh;margin-top:0;flex:none}
   .ev-photo-resp{-webkit-mask-image:linear-gradient(to right,transparent 0%,#000 35%);mask-image:linear-gradient(to right,transparent 0%,#000 35%)}
   .ev-brand{top:14px;left:24px;right:auto;justify-content:flex-start;font-size:18px}
   .ev-text{align-items:flex-start;text-align:left;margin-top:0;padding:46px 12px 14px 28px;justify-content:center}
   .ev-line-end{display:none}
   .ev-tagline{font-size:1rem;margin-top:8px}
   .ev-name{font-size:2.2rem;margin-top:4px}
-  .ev-facts{justify-content:flex-start;margin-top:8px;font-size:10px}
+  .ev-stats{justify-content:flex-start;margin-top:8px}.ev-stat{text-align:left;padding:0 10px}.ev-stat:first-child{padding-left:0}.ev-stat-n{font-size:1.5rem}.ev-stat-l{font-size:8px}
+  .ev-chips{display:none}
   .ev-when{flex-direction:row;margin-top:12px;gap:14px}
   .ev-datebox{width:84px;padding:6px 0}.ev-date-big{font-size:32px}
   .ev-msg{font-size:0.85rem;text-align:left}
@@ -359,10 +376,10 @@ export default function EventInvite() {
               </div>
               <div className="ev-tagline" style={{ fontFamily: SERIF }}>Champions are made in moments like these.</div>
               <h2 className="ev-name ev-gold" style={{ fontFamily: SERIF }}>Mahesh<br className="ev-br" /> Bhupathi</h2>
-              <div className="ev-facts">
-                <span>12 GRAND SLAM TITLES</span>
-                <span style={{ color: GOLD }}>◆</span>
-                <span>FIRST INDIAN GRAND SLAM CHAMPION</span>
+              <div className="ev-stats">
+                <div className="ev-stat"><div className="ev-stat-n ev-gold" style={{ fontFamily: SERIF }}>12</div><div className="ev-stat-l">GRAND SLAM<br />TITLES</div></div>
+                <div className="ev-stat"><div className="ev-stat-n ev-gold" style={{ fontFamily: SERIF }}>1st</div><div className="ev-stat-l">INDIAN GRAND<br />SLAM CHAMPION</div></div>
+                <div className="ev-stat"><div className="ev-stat-n ev-gold" style={{ fontFamily: SERIF }}>4/4</div><div className="ev-stat-l">CAREER SLAM IN<br />MIXED DOUBLES</div></div>
               </div>
 
               <div className="ev-when">
@@ -372,8 +389,12 @@ export default function EventInvite() {
                   <div className="ev-date-sm">NOV 2026</div>
                 </div>
                 <p className="ev-msg" style={{ fontFamily: SERIF }}>
-                  Join Parva Group for an intimate, invite-only evening — stories from the world's biggest courts, the mindset behind every win, and a rare chance to meet the man himself.
+                  An intimate, invite-only evening hosted by Parva Group.
                 </p>
+              </div>
+
+              <div className="ev-chips">
+                <span>Live conversation</span><span>Champion's mindset</span><span>Meet &amp; greet</span>
               </div>
 
               <div className="ev-actions">
