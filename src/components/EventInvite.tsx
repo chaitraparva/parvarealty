@@ -8,12 +8,6 @@ import { submitInvite } from '../store/inviteStore'
 const HIDE_AFTER = new Date('2026-11-15T00:00:00+04:00')
 const SEEN_KEY = 'parva-event-invite-seen'
 const STRIP_H = '36px'
-// Poster artboard size (same as the design image)
-const ART_W = 738
-const ART_H = 1600
-// Wide layout for laptops / desktops / TVs
-const WIDE_W = 1760
-const WIDE_H = 900
 
 const FONTS_URL =
   'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@400;500;600;700&display=swap'
@@ -28,11 +22,110 @@ const CSS = `
 @keyframes evGold{to{background-position:-200% center}}
 .ev-btn{transition:transform .25s ease,box-shadow .25s ease,filter .25s ease}
 .ev-btn:hover{transform:translateY(-2px);filter:brightness(1.06);box-shadow:0 0 0 1px rgba(255,236,180,.5),0 14px 40px rgba(201,164,74,.45)}
-.ev-photo{-webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 8%,#000 86%,transparent 100%),linear-gradient(to right,transparent 0%,#000 16%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to bottom,transparent 0%,#000 8%,#000 86%,transparent 100%),linear-gradient(to right,transparent 0%,#000 16%);mask-composite:intersect}
 .ev-in{background:rgba(255,255,255,0.05);border:1px solid rgba(201,164,74,0.3);color:${IVORY};border-radius:12px;padding:13px 15px;font:500 15px ${SANS};width:100%;outline:none}
 .ev-in:focus{border-color:#C9A44A;box-shadow:0 0 0 3px rgba(201,164,74,0.15)}
 .ev-in::placeholder{color:rgba(240,235,224,0.35)}
-.ev-photo-w{-webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 7%,#000 80%,transparent 100%),linear-gradient(to right,transparent 0%,#000 18%,#000 82%,transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to bottom,transparent 0%,#000 7%,#000 80%,transparent 100%),linear-gradient(to right,transparent 0%,#000 18%,#000 82%,transparent 100%);mask-composite:intersect}
+.ev-frame{position:fixed;inset:10px;border:1px solid rgba(201,164,74,0.32);pointer-events:none;z-index:25;box-shadow:inset 0 0 0 6px rgba(0,0,0,0),inset 0 0 0 7px rgba(201,164,74,0.10)}
+.ev-wrap{position:relative;min-height:100%;display:flex;flex-direction:column}
+.ev-photo-box{position:relative;width:100%;height:40vh;height:40svh;min-height:230px;flex:none;overflow:hidden}
+.ev-glow{position:absolute;left:15%;right:15%;top:8%;bottom:10%;border-radius:50%;background:radial-gradient(circle,rgba(232,201,126,0.30),transparent 68%);filter:blur(10px)}
+.ev-photo-resp{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 14%;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 14%,#000 62%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0%,#000 14%,#000 62%,transparent 100%)}
+.ev-brand{position:absolute;top:26px;left:0;right:0;z-index:3;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;font-size:22px}
+.ev-brand-bar{width:1px;height:20px;background:rgba(201,164,74,0.6)}
+.ev-brand-group{font-size:11px;letter-spacing:0.4em;color:rgba(240,235,224,0.8)}
+.ev-brand-presents{font-style:italic;font-size:18px;color:#E8C97E}
+.ev-text{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:0 20px 28px;margin-top:-44px}
+.ev-br{display:none}
+.ev-eyebrow{display:flex;align-items:center;gap:12px;font-size:11.5px;letter-spacing:0.3em;color:#D4AF5A;font-weight:600}
+.ev-line{width:34px;height:1.5px;background:#C9A44A;flex:none}
+.ev-tagline{font-style:italic;font-size:clamp(1.05rem,4.6vw,1.6rem);line-height:1.2;margin-top:10px;color:#F0EBE0}
+.ev-name{font-weight:700;font-size:clamp(2.3rem,11.4vw,5rem);line-height:0.95;margin:8px 0 0;letter-spacing:0.01em;white-space:nowrap}
+.ev-facts{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 8px;margin-top:10px;font-size:clamp(9.5px,2.6vw,12.5px);letter-spacing:0.14em;color:rgba(240,235,224,0.82);font-weight:600}
+.ev-when{display:flex;flex-direction:row;align-items:center;gap:14px;margin-top:16px;max-width:560px;text-align:left}
+.ev-datebox{width:84px;padding:7px 0 6px;border:1px solid rgba(201,164,74,0.6);background:rgba(201,164,74,0.06);text-align:center;flex:none}
+.ev-date-sm{font-size:10px;letter-spacing:0.3em;padding-left:0.3em;font-weight:600}
+.ev-date-big{font-weight:700;font-size:38px;line-height:1;font-variant-numeric:lining-nums}
+.ev-msg{font-size:clamp(0.95rem,3.9vw,1.25rem);line-height:1.35;color:rgba(240,235,224,0.9);margin:0;text-align:left}
+.ev-actions{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:20px;width:100%}
+.ev-cta{display:inline-flex;align-items:center;justify-content:center;gap:14px;height:56px;padding:0 30px;border-radius:999px;width:min(100%,360px);
+  background:linear-gradient(100deg,#B8913A 0%,#F3D98B 45%,#E8C97E 62%,#C9A44A 100%);color:#1a1306;font-weight:700;font-size:15px;letter-spacing:0.16em;
+  box-shadow:inset 0 2px 0 rgba(255,245,215,0.65),0 12px 40px rgba(201,164,74,0.35)}
+.ev-actions-side{text-align:center}
+.ev-invite-only{font-size:11px;letter-spacing:0.3em;color:#D4AF5A;font-weight:600}
+.ev-continue{margin-top:6px;font-size:13px;letter-spacing:0.1em;color:rgba(240,235,224,0.7);text-decoration:underline;text-underline-offset:5px}
+
+/* Tablet portrait: a little more air */
+@media (min-width:600px){
+  .ev-photo-box{height:48vh;height:48svh}
+  .ev-text{justify-content:center;padding-bottom:44px}
+  .ev-name{font-size:clamp(3.6rem,10vw,6rem)}
+  .ev-tagline{margin-top:14px}.ev-facts{margin-top:16px}
+  .ev-datebox{width:112px;padding:10px 0 9px}.ev-date-big{font-size:48px}.ev-date-sm{font-size:11px}
+  .ev-cta{height:62px}.ev-actions{margin-top:26px}
+  .ev-eyebrow{font-size:13px}.ev-line{width:48px}
+  .ev-facts{font-size:13px}
+  .ev-when{flex-direction:row;text-align:left;gap:26px}
+  .ev-msg{text-align:left}
+  .ev-actions{flex-direction:row;justify-content:center;gap:30px}
+  .ev-actions-side{text-align:left}
+}
+
+/* Landscape screens (laptops, desktops, TVs, landscape tablets): text left, photo full-height right */
+@media (min-width:900px) and (min-aspect-ratio:11/10){
+  .ev-frame{inset:18px}
+  .ev-wrap{flex-direction:row-reverse;min-height:100vh;min-height:100svh}
+  .ev-photo-box{width:46%;height:auto;min-height:100vh;min-height:100svh}
+  .ev-glow{left:5%;right:5%;top:5%;bottom:20%}
+  .ev-photo-resp{object-position:center 12%;
+    -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 36%),linear-gradient(to bottom,#000 82%,transparent 100%);-webkit-mask-composite:source-in;
+    mask-image:linear-gradient(to right,transparent 0%,#000 36%),linear-gradient(to bottom,#000 82%,transparent 100%);mask-composite:intersect}
+  .ev-brand{top:6vh;left:6vw;right:auto;justify-content:flex-start;font-size:clamp(22px,1.9vw,34px)}
+  .ev-brand-bar{height:clamp(20px,1.6vw,30px)}
+  .ev-brand-group{font-size:clamp(11px,0.85vw,15px)}
+  .ev-brand-presents{font-size:clamp(17px,1.4vw,24px)}
+  .ev-text{align-items:flex-start;text-align:left;margin-top:0;padding:clamp(90px,15vh,170px) 2vw clamp(40px,7vh,90px) 6vw}
+  .ev-eyebrow{font-size:clamp(12px,0.95vw,17px)}
+  .ev-line-end{display:none}
+  .ev-line{width:clamp(40px,3vw,60px)}
+  .ev-tagline{font-size:clamp(1.3rem,min(2.3vw,4.2vh),2.6rem);margin-top:clamp(12px,2.6vh,30px)}
+  .ev-br{display:inline}
+  .ev-name{font-size:clamp(4rem,min(7.4vw,14.5vh),9rem);line-height:0.9;margin-top:clamp(8px,2vh,24px);white-space:normal}
+  .ev-facts{justify-content:flex-start;font-size:clamp(11px,0.9vw,16px);letter-spacing:0.22em;margin-top:clamp(12px,2.4vh,26px)}
+  .ev-when{flex-direction:row;align-items:center;max-width:min(52vw,900px);gap:clamp(18px,2vw,36px);margin-top:clamp(20px,4.5vh,52px)}
+  .ev-datebox{width:clamp(110px,8.5vw,160px);padding:clamp(8px,1.4vh,16px) 0}
+  .ev-date-sm{font-size:clamp(11px,0.8vw,14px)}
+  .ev-date-big{font-size:clamp(44px,min(3.8vw,7.2vh),70px)}
+  .ev-msg{font-size:clamp(1.05rem,min(1.5vw,2.9vh),1.75rem)}
+  .ev-actions{flex-direction:row;justify-content:flex-start;align-items:center;gap:clamp(20px,2vw,36px);margin-top:clamp(22px,4.5vh,50px);width:auto}
+  .ev-cta{width:auto;height:clamp(56px,7.5vh,80px);padding:0 clamp(28px,2.4vw,44px);font-size:clamp(14px,1vw,19px)}
+  .ev-actions-side{text-align:left}
+  .ev-invite-only{font-size:clamp(11px,0.75vw,14px)}
+  .ev-continue{font-size:clamp(13px,0.85vw,16px)}
+}
+/* Short landscape screens (small laptops / landscape phones): tighten vertical spacing */
+@media (min-width:900px) and (min-aspect-ratio:11/10) and (max-height:620px){
+  .ev-text{padding-top:72px;padding-bottom:28px}
+  .ev-when{margin-top:16px}.ev-actions{margin-top:18px}
+}
+/* Landscape phones (wide but short, under 900px): side by side, compact */
+@media (max-width:899px) and (orientation:landscape) and (max-height:500px){
+  .ev-wrap{flex-direction:row-reverse}
+  .ev-photo-box{width:42%;height:auto;min-height:100vh}
+  .ev-photo-resp{-webkit-mask-image:linear-gradient(to right,transparent 0%,#000 35%);mask-image:linear-gradient(to right,transparent 0%,#000 35%)}
+  .ev-brand{top:14px;left:24px;right:auto;justify-content:flex-start;font-size:18px}
+  .ev-text{align-items:flex-start;text-align:left;margin-top:0;padding:46px 12px 14px 28px;justify-content:center}
+  .ev-line-end{display:none}
+  .ev-tagline{font-size:1rem;margin-top:8px}
+  .ev-name{font-size:2.2rem;margin-top:4px}
+  .ev-facts{justify-content:flex-start;margin-top:8px;font-size:10px}
+  .ev-when{flex-direction:row;margin-top:12px;gap:14px}
+  .ev-datebox{width:84px;padding:6px 0}.ev-date-big{font-size:32px}
+  .ev-msg{font-size:0.85rem;text-align:left}
+  .ev-actions{flex-direction:row;justify-content:flex-start;margin-top:10px;gap:18px;width:auto}
+  .ev-cta{height:48px;width:auto;font-size:13px;padding:0 22px}
+  .ev-actions-side{text-align:left}
+}
 @media (prefers-reduced-motion:reduce){.ev-gold{animation:none}}
 `
 
@@ -113,8 +206,8 @@ function InviteForm({ onClose }: { onClose: () => void }) {
         ) : (
           <form onSubmit={submit} noValidate>
             <div className="text-center mb-6">
-              <div style={{ fontSize: 11, letterSpacing: '0.3em', color: '#C9A44A', fontWeight: 500 }}>MAHESH BHUPATHI · 14 NOVEMBER</div>
-              <div className="ev-gold mt-2" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 32, lineHeight: 1.05 }}>Request an Invite</div>
+              <div style={{ fontSize: 11, letterSpacing: '0.3em', color: '#C9A44A', fontWeight: 500 }}>AN EVENING WITH MAHESH BHUPATHI · SAT 14 NOV</div>
+              <div className="ev-gold mt-2" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 32, lineHeight: 1.05 }}>Reserve Your Seat</div>
             </div>
 
             <label className="block mb-4">
@@ -157,28 +250,6 @@ export default function EventInvite() {
   })
   const [shown, setShown] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
-  const [scale, setScale] = useState(1)
-  const [wide, setWide] = useState(false)
-
-  // Fit the whole invitation on any screen (phone, laptop, 4K) — text stays razor sharp because it is real text
-  useEffect(() => {
-    if (!open) return
-    const fit = () => {
-      const vw = window.visualViewport?.width ?? window.innerWidth
-      const vh = window.visualViewport?.height ?? window.innerHeight
-      const isWide = vw / vh >= 1.1 && vw >= 700 // landscape screens get the wide layout
-      setWide(isWide)
-      setScale(isWide ? Math.min(vw / WIDE_W, vh / WIDE_H) : Math.min(vw / ART_W, (vh - 8) / ART_H))
-    }
-    fit()
-    window.addEventListener('resize', fit)
-    window.visualViewport?.addEventListener('resize', fit)
-    return () => {
-      window.removeEventListener('resize', fit)
-      window.visualViewport?.removeEventListener('resize', fit)
-    }
-  }, [open])
-
   // Fonts for this announcement only
   useEffect(() => {
     if (!active || document.getElementById('parva-event-fonts')) return
@@ -229,10 +300,10 @@ export default function EventInvite() {
         style={{ height: STRIP_H, background: 'linear-gradient(90deg,#1a1408,#3a2c10,#1a1408)', borderBottom: '1px solid rgba(201,164,74,0.4)', color: IVORY, fontFamily: SANS, fontSize: 12 }}
       >
         <span className="whitespace-nowrap" style={{ color: GOLD, fontWeight: 600, letterSpacing: '0.12em' }}>MAHESH BHUPATHI</span>
-        <span className="hidden sm:inline" style={{ opacity: 0.85 }}>at Parva Group</span>
+        <span className="hidden sm:inline" style={{ opacity: 0.85 }}>· An evening with a legend</span>
         <span className="whitespace-nowrap" style={{ opacity: 0.85 }}>· 14 Nov</span>
         <button onClick={() => setFormOpen(true)} className="ml-1 sm:ml-2 underline whitespace-nowrap" style={{ color: GOLD, textUnderlineOffset: 3, fontWeight: 600 }}>
-          Request an invite →
+          Reserve your seat →
         </button>
       </div>
 
@@ -246,247 +317,77 @@ export default function EventInvite() {
         >
           <img src={maheshImg} alt="" style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', objectPosition: 'top', border: '1px solid rgba(201,164,74,0.6)', background: '#1a140a' }} />
           <span className="flex flex-col">
-            <span style={{ fontSize: 9, letterSpacing: '0.22em', color: '#C9A44A', fontWeight: 600 }}>EXCLUSIVE EVENT · 14 NOV</span>
-            <span style={{ fontSize: 13, color: IVORY, fontWeight: 600 }}>Request an invite</span>
+            <span style={{ fontSize: 9, letterSpacing: '0.22em', color: '#C9A44A', fontWeight: 600 }}>AN EVENING WITH A LEGEND · 14 NOV</span>
+            <span style={{ fontSize: 13, color: IVORY, fontWeight: 600 }}>Reserve your seat</span>
           </span>
         </button>
       )}
 
-      {/* Opening screen — the invitation, laid out exactly like the 738×1600 poster and scaled to fit the screen */}
+      {/* Opening screen — fully responsive invitation (fills phones, tablets, laptops, big screens) */}
       {open && (
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Exclusive event: Mahesh Bhupathi at Parva Group, 14 November"
-          className="fixed inset-0 z-[100] flex items-center justify-center transition-opacity duration-500"
-          style={{ opacity: shown ? 1 : 0, background: wide ? 'linear-gradient(180deg,#0e0b07,#080604)' : 'radial-gradient(ellipse at 50% 40%, #1a140b 0%, #050403 70%)', color: IVORY, fontFamily: SANS, overflow: 'hidden' }}
+          aria-label="An evening with Mahesh Bhupathi, hosted by Parva Group, Saturday 14 November 2026"
+          className="fixed inset-0 z-[100] overflow-y-auto overflow-x-hidden transition-opacity duration-500"
+          style={{ opacity: shown ? 1 : 0, background: 'radial-gradient(ellipse 70% 60% at 75% 30%, rgba(201,164,74,0.16), transparent 70%), linear-gradient(160deg,#0f0c08 0%,#0a0806 60%,#0c0906 100%)', color: IVORY, fontFamily: SANS }}
         >
-          <button onClick={close} aria-label="Close and go to the website" className="absolute z-20" style={{ top: 10, right: 14, color: 'rgba(240,235,224,0.7)', fontSize: 32, lineHeight: 1 }}>×</button>
+          <button onClick={close} aria-label="Close and go to the website" className="fixed z-30" style={{ top: 14, right: 18, color: 'rgba(240,235,224,0.75)', fontSize: 32, lineHeight: 1 }}>×</button>
+          <div className="ev-frame" aria-hidden="true" />
 
-          {wide ? (
-            <div style={{ width: WIDE_W * scale, height: WIDE_H * scale, position: 'relative', flex: 'none' }}>
-              <div
-                className="absolute top-0 left-0"
-                style={{
-                  width: WIDE_W,
-                  height: WIDE_H,
-                  transform: `scale(${scale})`,
-                  transformOrigin: 'top left',
-                  background:
-                    'radial-gradient(ellipse 30% 55% at 50% 38%, rgba(201,164,74,0.26), transparent 70%), radial-gradient(ellipse 60% 22% at 50% 100%, rgba(201,164,74,0.14), transparent 70%)',
-                }}
-              >
-                {/* Gold sweeps */}
-                <svg viewBox="0 0 1760 900" width={1760} height={900} className="absolute top-0 left-0 pointer-events-none" aria-hidden="true">
-                  <path d="M1760 26 C1660 66 1560 106 1460 160" stroke="#C9A44A" strokeWidth="1.6" fill="none" opacity="0.55" />
-                  <path d="M0 120 C180 160 330 230 470 330" stroke="#C9A44A" strokeWidth="1.2" fill="none" opacity="0.35" />
-                  <defs>
-                    <linearGradient id="evWaveW" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0" stopColor="#F3D98B" stopOpacity="0.85" />
-                      <stop offset="0.5" stopColor="#C9A44A" stopOpacity="0.35" />
-                      <stop offset="1" stopColor="#F3D98B" stopOpacity="0.85" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M0 820 C400 900 700 860 880 860 C1060 860 1360 900 1760 820" stroke="url(#evWaveW)" strokeWidth="2.4" fill="none" />
-                  <path d="M0 860 C420 920 720 890 880 890 C1040 890 1340 920 1760 860" stroke="url(#evWaveW)" strokeWidth="1.2" fill="none" opacity="0.6" />
-                </svg>
-
-                {/* PARVA GROUP header */}
-                <div className="absolute" style={{ left: 120, right: 120, top: 38, display: 'flex', alignItems: 'center', gap: 34 }}>
-                  <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,transparent,#C9A44A)' }} />
-                  <div className="text-center">
-                    <div className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 46, letterSpacing: '0.42em', paddingLeft: '0.42em', lineHeight: 1 }}>PARVA</div>
-                    <div style={{ fontSize: 16, letterSpacing: '0.38em', paddingLeft: '0.38em', color: 'rgba(240,235,224,0.8)', marginTop: 8 }}>GROUP</div>
-                  </div>
-                  <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,#C9A44A,transparent)' }} />
-                </div>
-
-                {/* Photo (centre) */}
-                <img src={maheshImg} alt="Mahesh Bhupathi" className="ev-photo-w absolute" style={{ left: 560, top: 120, width: 640, height: 780, objectFit: 'cover', objectPosition: 'center top' }} />
-
-                {/* Left: invitation title */}
-                <div className="absolute text-center" style={{ left: 60, width: 560, top: 235 }}>
-                  <div style={{ fontSize: 20, letterSpacing: '0.24em', color: '#D4AF5A', fontWeight: 500 }}>AN EXCLUSIVE EVENT</div>
-                  <div style={{ width: 80, height: 2, background: '#C9A44A', margin: '26px auto 32px' }} />
-                  <div style={{ fontSize: 28, letterSpacing: '0.36em', paddingLeft: '0.36em', color: IVORY, fontWeight: 500 }}>INVITING</div>
-                  <div className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 104, lineHeight: 0.92, marginTop: 14 }}>
-                    MAHESH<br />BHUPATHI
-                  </div>
-                  <div style={{ fontSize: 26, letterSpacing: '0.26em', paddingLeft: '0.26em', color: IVORY, fontWeight: 500, marginTop: 26 }}>TO PARVA GROUP</div>
-                </div>
-
-                {/* Right: date, message, button */}
-                <div className="absolute text-center" style={{ left: 1110, width: 620, top: 200 }}>
-                  <div style={{ fontSize: 19, letterSpacing: '0.22em', color: IVORY, fontWeight: 500 }}>JOIN US FOR AN EXCITING EVENT ON</div>
-                  <div className="flex items-center justify-center" style={{ gap: 26, marginTop: 22 }}>
-                    <svg width="58" height="58" viewBox="0 0 48 48" fill="none" stroke={GOLD} strokeWidth="2" aria-hidden="true">
-                      <rect x="6" y="10" width="36" height="32" rx="4" />
-                      <path d="M6 19h36M15 5v9M33 5v9" strokeLinecap="round" />
-                      {[0, 1, 2, 3].map(c => [0, 1, 2].map(r => (
-                        <rect key={`w${c}-${r}`} x={12 + c * 7} y={24 + r * 5.5} width="3.4" height="3" fill={GOLD} stroke="none" />
-                      )))}
-                    </svg>
-                    <span style={{ width: 2, height: 64, background: 'rgba(201,164,74,0.8)' }} />
-                    <span className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 60, lineHeight: 1, fontVariantNumeric: 'lining-nums', whiteSpace: 'nowrap' }}>
-                      NOVEMBER 14<sup style={{ fontSize: '0.42em', verticalAlign: 'super', marginLeft: 3 }}>TH</sup>
-                    </span>
-                  </div>
-                  <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 31, lineHeight: 1.28, color: 'rgba(240,235,224,0.94)', marginTop: 30 }}>
-                    Be a part of this special occasion<br />and experience an inspiring interaction<br />with{' '}
-                    <span style={{ color: GOLD, fontWeight: 600 }}>Mahesh Bhupathi</span> at Parva Group.
-                  </p>
-                  <button
-                    onClick={() => setFormOpen(true)}
-                    className="ev-btn flex items-center mx-auto"
-                    style={{
-                      marginTop: 36, width: 480, height: 88, borderRadius: 18, padding: '0 36px 0 44px',
-                      background: 'linear-gradient(100deg,#B8913A 0%,#F3D98B 45%,#E8C97E 62%,#C9A44A 100%)',
-                      color: '#1a1306',
-                      boxShadow: 'inset 0 2px 0 rgba(255,245,215,0.65), inset 0 -2px 0 rgba(120,90,30,0.4), 0 14px 44px rgba(201,164,74,0.35)',
-                    }}
-                  >
-                    <PersonPlusIcon size={34} />
-                    <span style={{ width: 2, height: 40, background: 'rgba(26,19,6,0.55)', margin: '0 24px' }} />
-                    <span style={{ flex: 1, textAlign: 'left', fontWeight: 700, fontSize: 21, letterSpacing: '0.15em' }}>REQUEST AN INVITE</span>
-                  </button>
-                  <div className="flex items-center" style={{ gap: 14, marginTop: 34 }}>
-                    <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,transparent,#C9A44A)' }} />
-                    <span style={{ color: GOLD, fontSize: 20, lineHeight: 1 }}>✦</span>
-                    <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,#C9A44A,transparent)' }} />
-                  </div>
-                  <div style={{ marginTop: 20, fontSize: 17, letterSpacing: '0.3em', paddingLeft: '0.3em', color: '#D4AF5A', fontWeight: 500 }}>DON'T MISS THIS EXCLUSIVE EVENT</div>
-                  <div style={{ marginTop: 10, fontSize: 16, letterSpacing: '0.35em', paddingLeft: '0.35em', color: 'rgba(240,235,224,0.85)' }}>PARVA GROUP</div>
-                  <button onClick={close} style={{ marginTop: 26, fontSize: 16, letterSpacing: '0.14em', color: 'rgba(240,235,224,0.7)', textDecoration: 'underline', textUnderlineOffset: 5 }}>
-                    Continue to website →
-                  </button>
-                </div>
-              </div>
+          <div className="ev-wrap">
+            {/* Photo */}
+            <div className="ev-photo-box">
+              <div className="ev-glow" aria-hidden="true" />
+              <img src={maheshImg} alt="Mahesh Bhupathi" className="ev-photo-resp" />
             </div>
-          ) : (
-          <div style={{ width: ART_W * scale, height: ART_H * scale, position: 'relative', flex: 'none' }}>
-            <div
-              className="absolute top-0 left-0 overflow-hidden"
-              style={{
-                width: ART_W,
-                height: ART_H,
-                transform: `scale(${scale})`,
-                transformOrigin: 'top left',
-                background:
-                  'radial-gradient(ellipse 55% 30% at 85% 22%, rgba(201,164,74,0.28), transparent 70%), radial-gradient(ellipse 80% 25% at 50% 96%, rgba(201,164,74,0.16), transparent 70%), linear-gradient(180deg,#0f0c08 0%,#090705 55%,#0b0906 100%)',
-                boxShadow: '0 0 0 1px rgba(201,164,74,0.15), 0 30px 90px rgba(0,0,0,0.8)',
-              }}
-            >
-              {/* Top-right gold sweep */}
-              <svg viewBox="0 0 738 700" width={738} height={700} className="absolute top-0 left-0 pointer-events-none" aria-hidden="true">
-                <path d="M738 20 C640 90 560 160 470 260" stroke="#C9A44A" strokeWidth="1.6" fill="none" opacity="0.7" />
-                <path d="M738 0 C600 120 520 210 430 330" stroke="#C9A44A" strokeWidth="0.8" fill="none" opacity="0.35" />
-              </svg>
 
-              {/* Photo */}
-              <img src={maheshImg} alt="Mahesh Bhupathi" className="ev-photo absolute" style={{ left: 300, top: 160, width: 438, height: 540, objectFit: 'cover' }} />
+            {/* Brand */}
+            <div className="ev-brand">
+              <span className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, letterSpacing: '0.36em' }}>PARVA</span>
+              <span className="ev-brand-bar" />
+              <span className="ev-brand-group">GROUP</span>
+              <span className="ev-brand-presents" style={{ fontFamily: SERIF }}>presents</span>
+            </div>
 
-              {/* PARVA GROUP header */}
-              <div className="absolute" style={{ left: 38, right: 38, top: 76, display: 'flex', alignItems: 'center', gap: 28 }}>
-                <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,transparent,#C9A44A)' }} />
-                <div className="text-center">
-                  <div className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 46, letterSpacing: '0.42em', paddingLeft: '0.42em', lineHeight: 1 }}>PARVA</div>
-                  <div style={{ fontSize: 17, letterSpacing: '0.38em', paddingLeft: '0.38em', color: 'rgba(240,235,224,0.8)', marginTop: 8 }}>GROUP</div>
+            {/* Text */}
+            <div className="ev-text">
+              <div className="ev-eyebrow">
+                <span className="ev-line" />
+                <span>AN EVENING WITH A LEGEND</span>
+                <span className="ev-line ev-line-end" />
+              </div>
+              <div className="ev-tagline" style={{ fontFamily: SERIF }}>Champions are made in moments like these.</div>
+              <h2 className="ev-name ev-gold" style={{ fontFamily: SERIF }}>Mahesh<br className="ev-br" /> Bhupathi</h2>
+              <div className="ev-facts">
+                <span>12 GRAND SLAM TITLES</span>
+                <span style={{ color: GOLD }}>◆</span>
+                <span>FIRST INDIAN GRAND SLAM CHAMPION</span>
+              </div>
+
+              <div className="ev-when">
+                <div className="ev-datebox">
+                  <div className="ev-date-sm" style={{ color: '#D4AF5A' }}>SAT</div>
+                  <div className="ev-date-big ev-gold" style={{ fontFamily: SERIF }}>14</div>
+                  <div className="ev-date-sm">NOV 2026</div>
                 </div>
-                <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,#C9A44A,transparent)' }} />
+                <p className="ev-msg" style={{ fontFamily: SERIF }}>
+                  Join Parva Group for an intimate, invite-only evening — stories from the world's biggest courts, the mindset behind every win, and a rare chance to meet the man himself.
+                </p>
               </div>
 
-              {/* Left text block */}
-              <div className="absolute text-center" style={{ left: 30, width: 400, top: 276 }}>
-                <div style={{ fontSize: 18, letterSpacing: '0.22em', color: '#D4AF5A', fontWeight: 500 }}>AN EXCLUSIVE EVENT</div>
-                <div style={{ width: 70, height: 2, background: '#C9A44A', margin: '24px auto 30px' }} />
-                <div style={{ fontSize: 25, letterSpacing: '0.36em', paddingLeft: '0.36em', color: IVORY, fontWeight: 500 }}>INVITING</div>
-                <div className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 82, lineHeight: 0.92, marginTop: 10 }}>
-                  MAHESH<br />BHUPATHI
+              <div className="ev-actions">
+                <button onClick={() => setFormOpen(true)} className="ev-btn ev-cta">
+                  <span>RESERVE MY SEAT</span>
+                  <span style={{ fontSize: '1.35em', lineHeight: 1 }}>→</span>
+                </button>
+                <div className="ev-actions-side">
+                  <div className="ev-invite-only">STRICTLY BY INVITATION</div>
+                  <button onClick={close} className="ev-continue">Continue to website</button>
                 </div>
-                <div style={{ fontSize: 24, letterSpacing: '0.24em', paddingLeft: '0.24em', color: IVORY, fontWeight: 500, marginTop: 22 }}>TO PARVA GROUP</div>
               </div>
-
-              {/* Gold line */}
-              <div className="absolute" style={{ left: 100, right: 98, top: 680, height: 1.5, background: 'linear-gradient(90deg,transparent,#C9A44A 15%,#E8C97E 50%,#C9A44A 85%,transparent)' }} />
-
-              {/* Date */}
-              <div className="absolute text-center" style={{ left: 0, right: 0, top: 730, fontSize: 20, letterSpacing: '0.22em', color: IVORY, fontWeight: 500 }}>
-                JOIN US FOR AN EXCITING EVENT ON
-              </div>
-              <div className="absolute flex items-center justify-center" style={{ left: 0, right: 0, top: 778, gap: 30 }}>
-                <svg width="60" height="60" viewBox="0 0 48 48" fill="none" stroke={GOLD} strokeWidth="2" aria-hidden="true">
-                  <rect x="6" y="10" width="36" height="32" rx="4" />
-                  <path d="M6 19h36M15 5v9M33 5v9" strokeLinecap="round" />
-                  {[0, 1, 2, 3].map(c => [0, 1, 2].map(r => (
-                    <rect key={`${c}-${r}`} x={12 + c * 7} y={24 + r * 5.5} width="3.4" height="3" fill={GOLD} stroke="none" />
-                  )))}
-                </svg>
-                <span style={{ width: 2, height: 66, background: 'rgba(201,164,74,0.8)' }} />
-                <span className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 64, lineHeight: 1, fontVariantNumeric: 'lining-nums' }}>
-                  NOVEMBER 14<sup style={{ fontSize: '0.42em', verticalAlign: 'super', marginLeft: 3 }}>TH</sup>
-                </span>
-              </div>
-
-              <p className="absolute text-center" style={{ left: 60, right: 60, top: 878, fontFamily: SERIF, fontStyle: 'italic', fontSize: 33, lineHeight: 1.25, color: 'rgba(240,235,224,0.94)' }}>
-                Be a part of this special occasion<br />and experience an inspiring interaction with<br />
-                <span style={{ color: GOLD, fontWeight: 600 }}>Mahesh Bhupathi</span> at Parva Group.
-              </p>
-
-              {/* Request an invite */}
-              <button
-                onClick={() => setFormOpen(true)}
-                className="ev-btn absolute flex items-center"
-                style={{
-                  left: 117, width: 504, top: 1055, height: 98, borderRadius: 18, padding: '0 40px 0 50px',
-                  background: 'linear-gradient(100deg,#B8913A 0%,#F3D98B 45%,#E8C97E 62%,#C9A44A 100%)',
-                  color: '#1a1306',
-                  boxShadow: 'inset 0 2px 0 rgba(255,245,215,0.65), inset 0 -2px 0 rgba(120,90,30,0.4), 0 14px 44px rgba(201,164,74,0.35)',
-                }}
-              >
-                <PersonPlusIcon size={38} />
-                <span style={{ width: 2, height: 44, background: 'rgba(26,19,6,0.55)', margin: '0 26px' }} />
-                <span style={{ flex: 1, textAlign: 'left', fontWeight: 700, fontSize: 23, letterSpacing: '0.15em' }}>REQUEST AN INVITE</span>
-              </button>
-
-              {/* Divider */}
-              <div className="absolute flex items-center" style={{ left: 100, right: 98, top: 1200, gap: 16 }}>
-                <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,transparent,#C9A44A)' }} />
-                <span style={{ color: GOLD, fontSize: 24, lineHeight: 1 }}>✦</span>
-                <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,#C9A44A,transparent)' }} />
-              </div>
-
-              <div className="absolute text-center" style={{ left: 0, right: 0, top: 1266, fontSize: 19, letterSpacing: '0.3em', paddingLeft: '0.3em', color: '#D4AF5A', fontWeight: 500 }}>
-                DON'T MISS THIS EXCLUSIVE EVENT
-              </div>
-              <div className="absolute text-center" style={{ left: 0, right: 0, top: 1313, fontSize: 18, letterSpacing: '0.35em', paddingLeft: '0.35em', color: 'rgba(240,235,224,0.85)' }}>
-                PARVA GROUP
-              </div>
-
-              {/* Flowing gold waves */}
-              <svg viewBox="0 0 738 280" width={738} height={280} className="absolute left-0 pointer-events-none" style={{ top: 1330 }} aria-hidden="true">
-                <defs>
-                  <linearGradient id="evWave" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0" stopColor="#F3D98B" stopOpacity="0.9" />
-                    <stop offset="0.5" stopColor="#C9A44A" stopOpacity="0.5" />
-                    <stop offset="1" stopColor="#F3D98B" />
-                  </linearGradient>
-                  <linearGradient id="evGlow" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stopColor="#C9A44A" stopOpacity="0.22" />
-                    <stop offset="1" stopColor="#C9A44A" stopOpacity="0.02" />
-                  </linearGradient>
-                </defs>
-                <path d="M0 30 C160 110 330 150 460 140 C580 130 670 90 738 60 L738 280 L0 280Z" fill="url(#evGlow)" />
-                <path d="M0 30 C160 110 330 150 460 140 C580 130 670 90 738 60" stroke="url(#evWave)" strokeWidth="3" fill="none" />
-                <path d="M0 120 C200 190 380 200 520 180 C620 165 690 140 738 120" stroke="url(#evWave)" strokeWidth="1.6" fill="none" opacity="0.7" />
-                <path d="M0 200 C220 250 420 250 738 200" stroke="url(#evWave)" strokeWidth="1" fill="none" opacity="0.5" />
-              </svg>
-
-              <button onClick={close} className="absolute" style={{ left: 0, right: 0, top: 1380, fontSize: 17, letterSpacing: '0.14em', color: 'rgba(240,235,224,0.7)', textDecoration: 'underline', textUnderlineOffset: 5 }}>
-                Continue to website →
-              </button>
             </div>
           </div>
-          )}
         </div>
       )}
 
