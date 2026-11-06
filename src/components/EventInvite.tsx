@@ -11,6 +11,9 @@ const STRIP_H = '36px'
 // Poster artboard size (same as the design image)
 const ART_W = 738
 const ART_H = 1600
+// Wide layout for laptops / desktops / TVs
+const WIDE_W = 1760
+const WIDE_H = 900
 
 const FONTS_URL =
   'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@400;500;600;700&display=swap'
@@ -29,6 +32,7 @@ const CSS = `
 .ev-in{background:rgba(255,255,255,0.05);border:1px solid rgba(201,164,74,0.3);color:${IVORY};border-radius:12px;padding:13px 15px;font:500 15px ${SANS};width:100%;outline:none}
 .ev-in:focus{border-color:#C9A44A;box-shadow:0 0 0 3px rgba(201,164,74,0.15)}
 .ev-in::placeholder{color:rgba(240,235,224,0.35)}
+.ev-photo-w{-webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 7%,#000 80%,transparent 100%),linear-gradient(to right,transparent 0%,#000 18%,#000 82%,transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to bottom,transparent 0%,#000 7%,#000 80%,transparent 100%),linear-gradient(to right,transparent 0%,#000 18%,#000 82%,transparent 100%);mask-composite:intersect}
 @media (prefers-reduced-motion:reduce){.ev-gold{animation:none}}
 `
 
@@ -154,6 +158,7 @@ export default function EventInvite() {
   const [shown, setShown] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
   const [scale, setScale] = useState(1)
+  const [wide, setWide] = useState(false)
 
   // Fit the whole invitation on any screen (phone, laptop, 4K) — text stays razor sharp because it is real text
   useEffect(() => {
@@ -161,7 +166,9 @@ export default function EventInvite() {
     const fit = () => {
       const vw = window.visualViewport?.width ?? window.innerWidth
       const vh = window.visualViewport?.height ?? window.innerHeight
-      setScale(Math.min(vw / ART_W, (vh - 8) / ART_H))
+      const isWide = vw / vh >= 1.1 && vw >= 700 // landscape screens get the wide layout
+      setWide(isWide)
+      setScale(isWide ? Math.min(vw / WIDE_W, vh / WIDE_H) : Math.min(vw / ART_W, (vh - 8) / ART_H))
     }
     fit()
     window.addEventListener('resize', fit)
@@ -252,10 +259,110 @@ export default function EventInvite() {
           aria-modal="true"
           aria-label="Exclusive event: Mahesh Bhupathi at Parva Group, 14 November"
           className="fixed inset-0 z-[100] flex items-center justify-center transition-opacity duration-500"
-          style={{ opacity: shown ? 1 : 0, background: 'radial-gradient(ellipse at 50% 40%, #1a140b 0%, #050403 70%)', color: IVORY, fontFamily: SANS, overflow: 'hidden' }}
+          style={{ opacity: shown ? 1 : 0, background: wide ? 'linear-gradient(180deg,#0e0b07,#080604)' : 'radial-gradient(ellipse at 50% 40%, #1a140b 0%, #050403 70%)', color: IVORY, fontFamily: SANS, overflow: 'hidden' }}
         >
           <button onClick={close} aria-label="Close and go to the website" className="absolute z-20" style={{ top: 10, right: 14, color: 'rgba(240,235,224,0.7)', fontSize: 32, lineHeight: 1 }}>×</button>
 
+          {wide ? (
+            <div style={{ width: WIDE_W * scale, height: WIDE_H * scale, position: 'relative', flex: 'none' }}>
+              <div
+                className="absolute top-0 left-0"
+                style={{
+                  width: WIDE_W,
+                  height: WIDE_H,
+                  transform: `scale(${scale})`,
+                  transformOrigin: 'top left',
+                  background:
+                    'radial-gradient(ellipse 30% 55% at 50% 38%, rgba(201,164,74,0.26), transparent 70%), radial-gradient(ellipse 60% 22% at 50% 100%, rgba(201,164,74,0.14), transparent 70%)',
+                }}
+              >
+                {/* Gold sweeps */}
+                <svg viewBox="0 0 1760 900" width={1760} height={900} className="absolute top-0 left-0 pointer-events-none" aria-hidden="true">
+                  <path d="M1760 26 C1660 66 1560 106 1460 160" stroke="#C9A44A" strokeWidth="1.6" fill="none" opacity="0.55" />
+                  <path d="M0 120 C180 160 330 230 470 330" stroke="#C9A44A" strokeWidth="1.2" fill="none" opacity="0.35" />
+                  <defs>
+                    <linearGradient id="evWaveW" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0" stopColor="#F3D98B" stopOpacity="0.85" />
+                      <stop offset="0.5" stopColor="#C9A44A" stopOpacity="0.35" />
+                      <stop offset="1" stopColor="#F3D98B" stopOpacity="0.85" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M0 820 C400 900 700 860 880 860 C1060 860 1360 900 1760 820" stroke="url(#evWaveW)" strokeWidth="2.4" fill="none" />
+                  <path d="M0 860 C420 920 720 890 880 890 C1040 890 1340 920 1760 860" stroke="url(#evWaveW)" strokeWidth="1.2" fill="none" opacity="0.6" />
+                </svg>
+
+                {/* PARVA GROUP header */}
+                <div className="absolute" style={{ left: 120, right: 120, top: 38, display: 'flex', alignItems: 'center', gap: 34 }}>
+                  <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,transparent,#C9A44A)' }} />
+                  <div className="text-center">
+                    <div className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 46, letterSpacing: '0.42em', paddingLeft: '0.42em', lineHeight: 1 }}>PARVA</div>
+                    <div style={{ fontSize: 16, letterSpacing: '0.38em', paddingLeft: '0.38em', color: 'rgba(240,235,224,0.8)', marginTop: 8 }}>GROUP</div>
+                  </div>
+                  <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,#C9A44A,transparent)' }} />
+                </div>
+
+                {/* Photo (centre) */}
+                <img src={maheshImg} alt="Mahesh Bhupathi" className="ev-photo-w absolute" style={{ left: 560, top: 120, width: 640, height: 780, objectFit: 'cover', objectPosition: 'center top' }} />
+
+                {/* Left: invitation title */}
+                <div className="absolute text-center" style={{ left: 60, width: 560, top: 235 }}>
+                  <div style={{ fontSize: 20, letterSpacing: '0.24em', color: '#D4AF5A', fontWeight: 500 }}>AN EXCLUSIVE EVENT</div>
+                  <div style={{ width: 80, height: 2, background: '#C9A44A', margin: '26px auto 32px' }} />
+                  <div style={{ fontSize: 28, letterSpacing: '0.36em', paddingLeft: '0.36em', color: IVORY, fontWeight: 500 }}>INVITING</div>
+                  <div className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 104, lineHeight: 0.92, marginTop: 14 }}>
+                    MAHESH<br />BHUPATHI
+                  </div>
+                  <div style={{ fontSize: 26, letterSpacing: '0.26em', paddingLeft: '0.26em', color: IVORY, fontWeight: 500, marginTop: 26 }}>TO PARVA GROUP</div>
+                </div>
+
+                {/* Right: date, message, button */}
+                <div className="absolute text-center" style={{ left: 1110, width: 620, top: 200 }}>
+                  <div style={{ fontSize: 19, letterSpacing: '0.22em', color: IVORY, fontWeight: 500 }}>JOIN US FOR AN EXCITING EVENT ON</div>
+                  <div className="flex items-center justify-center" style={{ gap: 26, marginTop: 22 }}>
+                    <svg width="58" height="58" viewBox="0 0 48 48" fill="none" stroke={GOLD} strokeWidth="2" aria-hidden="true">
+                      <rect x="6" y="10" width="36" height="32" rx="4" />
+                      <path d="M6 19h36M15 5v9M33 5v9" strokeLinecap="round" />
+                      {[0, 1, 2, 3].map(c => [0, 1, 2].map(r => (
+                        <rect key={`w${c}-${r}`} x={12 + c * 7} y={24 + r * 5.5} width="3.4" height="3" fill={GOLD} stroke="none" />
+                      )))}
+                    </svg>
+                    <span style={{ width: 2, height: 64, background: 'rgba(201,164,74,0.8)' }} />
+                    <span className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 60, lineHeight: 1, fontVariantNumeric: 'lining-nums', whiteSpace: 'nowrap' }}>
+                      NOVEMBER 14<sup style={{ fontSize: '0.42em', verticalAlign: 'super', marginLeft: 3 }}>TH</sup>
+                    </span>
+                  </div>
+                  <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 31, lineHeight: 1.28, color: 'rgba(240,235,224,0.94)', marginTop: 30 }}>
+                    Be a part of this special occasion<br />and experience an inspiring interaction<br />with{' '}
+                    <span style={{ color: GOLD, fontWeight: 600 }}>Mahesh Bhupathi</span> at Parva Group.
+                  </p>
+                  <button
+                    onClick={() => setFormOpen(true)}
+                    className="ev-btn flex items-center mx-auto"
+                    style={{
+                      marginTop: 36, width: 480, height: 88, borderRadius: 18, padding: '0 36px 0 44px',
+                      background: 'linear-gradient(100deg,#B8913A 0%,#F3D98B 45%,#E8C97E 62%,#C9A44A 100%)',
+                      color: '#1a1306',
+                      boxShadow: 'inset 0 2px 0 rgba(255,245,215,0.65), inset 0 -2px 0 rgba(120,90,30,0.4), 0 14px 44px rgba(201,164,74,0.35)',
+                    }}
+                  >
+                    <PersonPlusIcon size={34} />
+                    <span style={{ width: 2, height: 40, background: 'rgba(26,19,6,0.55)', margin: '0 24px' }} />
+                    <span style={{ flex: 1, textAlign: 'left', fontWeight: 700, fontSize: 21, letterSpacing: '0.15em' }}>REQUEST AN INVITE</span>
+                  </button>
+                  <div className="flex items-center" style={{ gap: 14, marginTop: 34 }}>
+                    <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,transparent,#C9A44A)' }} />
+                    <span style={{ color: GOLD, fontSize: 20, lineHeight: 1 }}>✦</span>
+                    <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,#C9A44A,transparent)' }} />
+                  </div>
+                  <div style={{ marginTop: 20, fontSize: 17, letterSpacing: '0.3em', paddingLeft: '0.3em', color: '#D4AF5A', fontWeight: 500 }}>DON'T MISS THIS EXCLUSIVE EVENT</div>
+                  <div style={{ marginTop: 10, fontSize: 16, letterSpacing: '0.35em', paddingLeft: '0.35em', color: 'rgba(240,235,224,0.85)' }}>PARVA GROUP</div>
+                  <button onClick={close} style={{ marginTop: 26, fontSize: 16, letterSpacing: '0.14em', color: 'rgba(240,235,224,0.7)', textDecoration: 'underline', textUnderlineOffset: 5 }}>
+                    Continue to website →
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
           <div style={{ width: ART_W * scale, height: ART_H * scale, position: 'relative', flex: 'none' }}>
             <div
               className="absolute top-0 left-0 overflow-hidden"
@@ -379,6 +486,7 @@ export default function EventInvite() {
               </button>
             </div>
           </div>
+          )}
         </div>
       )}
 
