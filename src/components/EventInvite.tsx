@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import maheshImg from '../imports/mahesh-bhupathi.webp'
+import maheshImg from '../imports/mahesh-bhupathi-cutout.webp'
 import { submitInvite } from '../store/inviteStore'
 
 // Event: Mahesh Bhupathi at Parva Group — 14 November 2026.
@@ -27,12 +27,15 @@ const CSS = `
 .ev-in::placeholder{color:rgba(240,235,224,0.35)}
 .ev-frame{position:fixed;inset:10px;border:1px solid rgba(201,164,74,0.32);pointer-events:none;z-index:25;box-shadow:inset 0 0 0 6px rgba(0,0,0,0),inset 0 0 0 7px rgba(201,164,74,0.10)}
 .ev-wrap{position:relative;min-height:100%;display:flex;flex-direction:column}
-.ev-photo-box{position:relative;width:100%;height:28vh;height:28svh;min-height:180px;margin-top:66px;flex:none;overflow:hidden}
+.ev-photo-box{position:relative;width:100%;height:29vh;height:29svh;min-height:160px;margin-top:66px;flex:none;overflow:hidden;container-type:size}
 @media (max-width:599px) and (max-height:700px){.ev-photo-box{height:21vh;height:21svh;min-height:130px;margin-top:56px}.ev-chips{margin-top:10px}.ev-when{margin-top:12px}.ev-actions{margin-top:14px;gap:8px}.ev-stats{margin-top:10px}.ev-text{padding-bottom:16px}}
 @media (max-width:599px){.ev-text{flex:none}.ev-wrap{justify-content:center;min-height:100vh;min-height:100svh}}
-.ev-glow{position:absolute;left:15%;right:15%;top:8%;bottom:10%;border-radius:50%;background:radial-gradient(circle,rgba(232,201,126,0.30),transparent 68%);filter:blur(10px)}
-.ev-photo-resp{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 14%;
-  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 14%,#000 62%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0%,#000 14%,#000 62%,transparent 100%)}
+.ev-fig{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:min(100cqw,119cqh);aspect-ratio:2513/1858}
+.ev-glow{position:absolute;left:50%;top:-32%;width:105%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,rgba(232,201,126,0.40) 0%,rgba(201,164,74,0.14) 40%,transparent 66%);pointer-events:none}
+.ev-ring{position:absolute;left:50%;top:-15%;width:58%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;border:1px solid rgba(201,164,74,0.6);box-shadow:0 0 30px rgba(201,164,74,0.2),inset 0 0 30px rgba(201,164,74,0.08)}
+.ev-ring::after{content:'';position:absolute;inset:-8px;border-radius:50%;border:1px solid rgba(201,164,74,0.2)}
+.ev-photo-resp{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center bottom;
+  -webkit-mask-image:linear-gradient(to bottom,#000 74%,transparent 100%);mask-image:linear-gradient(to bottom,#000 74%,transparent 100%)}
 .ev-brand{position:absolute;top:24px;left:0;right:0;z-index:3;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;font-size:22px}
 .ev-brand-bar{width:1px;height:20px;background:rgba(201,164,74,0.6)}
 .ev-brand-group{font-size:11px;letter-spacing:0.4em;color:rgba(240,235,224,0.8)}
@@ -57,11 +60,11 @@ const CSS = `
 .ev-date-big{font-weight:700;font-size:38px;line-height:1;font-variant-numeric:lining-nums}
 .ev-msg{font-size:clamp(0.95rem,3.9vw,1.25rem);line-height:1.35;color:rgba(240,235,224,0.9);margin:0;text-align:left}
 .ev-actions{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:20px;width:100%}
-.ev-cta{display:inline-flex;align-items:center;justify-content:center;gap:14px;height:56px;padding:0 30px;border-radius:999px;width:min(100%,360px);
+.ev-cta{white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:14px;height:56px;padding:0 30px;border-radius:999px;width:min(100%,360px);
   background:linear-gradient(100deg,#B8913A 0%,#F3D98B 45%,#E8C97E 62%,#C9A44A 100%);color:#1a1306;font-weight:700;font-size:15px;letter-spacing:0.16em;
   box-shadow:inset 0 2px 0 rgba(255,245,215,0.65),0 12px 40px rgba(201,164,74,0.35)}
 .ev-actions-side{text-align:center}
-.ev-invite-only{font-size:11px;letter-spacing:0.3em;color:#D4AF5A;font-weight:600}
+.ev-invite-only{white-space:nowrap;font-size:11px;letter-spacing:0.3em;color:#D4AF5A;font-weight:600}
 .ev-continue{margin-top:6px;font-size:13px;letter-spacing:0.1em;color:rgba(240,235,224,0.7);text-decoration:underline;text-underline-offset:5px}
 
 /* Tablet portrait: a little more air */
@@ -69,7 +72,7 @@ const CSS = `
   .ev-brand{gap:9px;font-size:17px}.ev-brand-group{font-size:9.5px;letter-spacing:0.32em}.ev-brand-presents{font-size:14px}.ev-brand-bar{height:15px}
 }
 @media (min-width:600px){
-  .ev-photo-box{height:36vh;height:36svh}
+  .ev-photo-box{height:38vh;height:38svh}
   .ev-text{justify-content:center;padding-bottom:44px}
   .ev-name{font-size:clamp(3.6rem,10vw,6rem)}
   .ev-tagline{margin-top:14px}.ev-facts{margin-top:16px}
@@ -87,10 +90,8 @@ const CSS = `
 @media (min-width:900px) and (min-aspect-ratio:11/10){
   .ev-frame{inset:18px}
   .ev-wrap{flex-direction:row-reverse;min-height:100vh;min-height:100svh}
-  .ev-photo-box{width:clamp(280px,30vw,760px);height:74vh;height:74svh;min-height:0;align-self:center;margin:0 6vw 0 0;flex:none}
-  .ev-glow{left:5%;right:5%;top:5%;bottom:20%}
-  .ev-photo-resp{object-position:center 12%;
-    -webkit-mask-image:radial-gradient(ellipse 50% 50% at 50% 46%,#000 62%,transparent 100%);mask-image:radial-gradient(ellipse 50% 50% at 50% 46%,#000 62%,transparent 100%)}
+  .ev-photo-box{width:48%;height:100vh;height:100svh;min-height:0;align-self:flex-start;position:sticky;top:0;margin:0;flex:none}
+  .ev-fig{width:min(100cqw,112cqh)}
   .ev-brand{top:6vh;left:6vw;right:auto;justify-content:flex-start;font-size:clamp(22px,1.9vw,34px)}
   .ev-brand-bar{height:clamp(20px,1.6vw,30px)}
   .ev-brand-group{font-size:clamp(11px,0.85vw,15px)}
@@ -127,8 +128,8 @@ const CSS = `
 /* Landscape phones (wide but short, under 900px): side by side, compact */
 @media (max-width:899px) and (orientation:landscape) and (max-height:500px){
   .ev-wrap{flex-direction:row-reverse}
-  .ev-photo-box{width:42%;height:auto;min-height:100vh;margin-top:0;flex:none}
-  .ev-photo-resp{-webkit-mask-image:linear-gradient(to right,transparent 0%,#000 35%);mask-image:linear-gradient(to right,transparent 0%,#000 35%)}
+  .ev-photo-box{width:42%;height:100vh;min-height:0;margin-top:0;flex:none}
+  .ev-fig{width:min(96cqw,108cqh)}
   .ev-brand{top:14px;left:24px;right:auto;justify-content:flex-start;font-size:18px}
   .ev-text{align-items:flex-start;text-align:left;margin-top:0;padding:46px 12px 14px 28px;justify-content:center}
   .ev-line-end{display:none}
@@ -355,8 +356,11 @@ export default function EventInvite() {
           <div className="ev-wrap">
             {/* Photo */}
             <div className="ev-photo-box">
-              <div className="ev-glow" aria-hidden="true" />
-              <img src={maheshImg} alt="Mahesh Bhupathi" className="ev-photo-resp" />
+              <div className="ev-fig">
+                <div className="ev-glow" aria-hidden="true" />
+                <div className="ev-ring" aria-hidden="true" />
+                <img src={maheshImg} alt="Mahesh Bhupathi" className="ev-photo-resp" />
+              </div>
             </div>
 
             {/* Brand */}
