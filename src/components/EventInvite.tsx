@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import maheshImg from '../imports/mahesh-bhupathi.webp'
+import maheshPoster from '../imports/mahesh-bhupathi-4k.webp'
 import { submitInvite } from '../store/inviteStore'
 
 // Event: Mahesh Bhupathi at Parva Group — 14 November 2026.
@@ -302,7 +303,7 @@ export default function EventInvite() {
                 </div>
 
                 {/* Photo (centre) */}
-                <img src={maheshImg} alt="Mahesh Bhupathi" className="ev-photo-w absolute" style={{ left: 560, top: 120, width: 640, height: 780, objectFit: 'cover', objectPosition: 'center top' }} />
+                <img src={maheshPoster} alt="Mahesh Bhupathi" className="ev-photo-w absolute" style={{ left: 560, top: 120, width: 640, height: 780, objectFit: 'cover', objectPosition: 'center top' }} />
 
                 {/* Left: invitation title */}
                 <div className="absolute text-center" style={{ left: 60, width: 560, top: 235 }}>
@@ -382,7 +383,7 @@ export default function EventInvite() {
               </svg>
 
               {/* Photo */}
-              <img src={maheshImg} alt="Mahesh Bhupathi" className="ev-photo absolute" style={{ left: 300, top: 160, width: 438, height: 540, objectFit: 'cover' }} />
+              <img src={maheshPoster} alt="Mahesh Bhupathi" className="ev-photo absolute" style={{ left: 300, top: 160, width: 438, height: 540, objectFit: 'cover' }} />
 
               {/* PARVA GROUP header */}
               <div className="absolute" style={{ left: 38, right: 38, top: 76, display: 'flex', alignItems: 'center', gap: 28 }}>
