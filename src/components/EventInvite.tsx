@@ -1,23 +1,17 @@
-import { useEffect, useState } from 'react'
-import maheshImg from '../imports/mahesh-bhupathi.webp'
-import maheshPoster from '../imports/mahesh-bhupathi-4k.webp'
-import { submitInvite } from '../store/inviteStore'
+import { useEffect, useRef, useState } from 'react'
+import partnerImg from '../imports/mahesh-bhupathi-partner.webp'
+import { submitInvite, cleanPhone } from '../store/inviteStore'
 
-// Event: Mahesh Bhupathi at Parva Group — 14 November 2026.
-// The whole announcement (opening screen, top strip, floating button) hides itself
+// Partnership announcement: Parva Group welcomes Mahesh Bhupathi — celebration on 14 November 2026.
+// Everything here (opening announcement, top strip, floating button) hides itself
 // automatically after the event day ends (Dubai time).
 const HIDE_AFTER = new Date('2026-11-15T00:00:00+04:00')
 const SEEN_KEY = 'parva-event-invite-seen'
+const DONE_KEY = 'parva-event-registered'
 const STRIP_H = '36px'
-// Poster artboard size (same as the design image)
-const ART_W = 738
-const ART_H = 1600
-// Wide layout for laptops / desktops / TVs
-const WIDE_W = 1760
-const WIDE_H = 900
 
 const FONTS_URL =
-  'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,500&family=Montserrat:wght@400;500;600;700&display=swap'
+  'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,500;1,600&family=Montserrat:wght@400;500;600;700&display=swap'
 const SERIF = "'Cormorant Garamond', 'Playfair Display', serif"
 const SANS = "'Montserrat', 'Outfit', sans-serif"
 const GOLD = '#E8C97E'
@@ -29,12 +23,156 @@ const CSS = `
 @keyframes evGold{to{background-position:-200% center}}
 .ev-btn{transition:transform .25s ease,box-shadow .25s ease,filter .25s ease}
 .ev-btn:hover{transform:translateY(-2px);filter:brightness(1.06);box-shadow:0 0 0 1px rgba(255,236,180,.5),0 14px 40px rgba(201,164,74,.45)}
-.ev-photo{-webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 8%,#000 86%,transparent 100%),linear-gradient(to right,transparent 0%,#000 16%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to bottom,transparent 0%,#000 8%,#000 86%,transparent 100%),linear-gradient(to right,transparent 0%,#000 16%);mask-composite:intersect}
-.ev-in{background:rgba(255,255,255,0.05);border:1px solid rgba(201,164,74,0.3);color:${IVORY};border-radius:12px;padding:13px 15px;font:500 15px ${SANS};width:100%;outline:none}
+.ev-btn:focus-visible{outline:2px solid ${GOLD};outline-offset:3px}
+.ev-in{background:rgba(255,255,255,0.05);border:1px solid rgba(201,164,74,0.3);color:${IVORY};border-radius:12px;padding:13px 15px;font:500 16px ${SANS};width:100%;outline:none}
 .ev-in:focus{border-color:#C9A44A;box-shadow:0 0 0 3px rgba(201,164,74,0.15)}
+.ev-in[aria-invalid="true"]{border-color:#E57373}
 .ev-in::placeholder{color:rgba(240,235,224,0.35)}
-.ev-photo-w{-webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 7%,#000 80%,transparent 100%),linear-gradient(to right,transparent 0%,#000 18%,#000 82%,transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to bottom,transparent 0%,#000 7%,#000 80%,transparent 100%),linear-gradient(to right,transparent 0%,#000 18%,#000 82%,transparent 100%);mask-composite:intersect}
-@media (prefers-reduced-motion:reduce){.ev-gold{animation:none}}
+
+/* ───────── Partnership announcement ───────── */
+.pa{position:fixed;inset:0;z-index:100;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  color:${IVORY};font-family:${SANS};transition:opacity .5s ease;
+  background:radial-gradient(ellipse 70% 45% at 72% 22%,rgba(201,164,74,.20),transparent 70%),linear-gradient(180deg,#100c07 0%,#080604 55%,#0b0906 100%)}
+.pa-close{position:fixed;z-index:10;top:max(10px,env(safe-area-inset-top));right:12px;width:42px;height:42px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:26px;line-height:1;color:rgba(240,235,224,.8);
+  background:rgba(8,6,4,.55);border:1px solid rgba(201,164,74,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.pa-close:hover{color:#fff;border-color:#C9A44A}
+.pa-close:focus-visible{outline:2px solid ${GOLD};outline-offset:2px}
+.pa-waves{position:absolute;left:0;right:0;bottom:0;width:100%;height:clamp(60px,9svh,200px);pointer-events:none}
+.pa-sweep{position:absolute;top:0;right:0;width:min(70vw,620px);height:auto;pointer-events:none;opacity:.8}
+
+.pa-shell{position:relative;min-height:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;align-items:center;text-align:center;
+  padding:max(16px,env(safe-area-inset-top)) 18px max(30px,calc(env(safe-area-inset-bottom) + 22px));gap:clamp(8px,1.5svh,16px)}
+
+.pa-brand{display:flex;align-items:center;gap:16px;width:100%;padding:0 40px}
+.pa-rule{flex:1;height:1px;background:linear-gradient(90deg,transparent,#C9A44A)}
+.pa-rule.r{background:linear-gradient(90deg,#C9A44A,transparent)}
+.pa-parva{font-family:${SERIF};font-weight:600;font-size:clamp(24px,4.2svh,40px);letter-spacing:.42em;padding-left:.42em;line-height:1}
+.pa-group{font-size:clamp(9px,1.3svh,12px);letter-spacing:.5em;padding-left:.5em;color:rgba(240,235,224,.75);margin-top:5px}
+
+/* Hero: name on the left, photo on the right (phone & tablet portrait) */
+.pa-hero{position:relative;width:calc(100% + 36px);margin:0 -18px;height:clamp(220px,37svh,400px);overflow:hidden}
+.pa-photo{position:absolute;right:0;top:0;bottom:0;width:58%;margin:0}
+.pa-glow{position:absolute;left:50%;top:40%;width:130%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;
+  background:radial-gradient(circle,rgba(243,217,139,.30) 0%,rgba(201,164,74,.12) 40%,transparent 68%);pointer-events:none}
+.pa-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:52% 0%;display:block;
+  -webkit-mask-image:linear-gradient(to bottom,#000 70%,transparent 99%),linear-gradient(to right,transparent 0%,#000 22%);-webkit-mask-composite:source-in;
+  mask-image:linear-gradient(to bottom,#000 70%,transparent 99%),linear-gradient(to right,transparent 0%,#000 22%);mask-composite:intersect}
+.pa-title{position:absolute;left:18px;top:50%;transform:translateY(-50%);width:55%;z-index:2;display:flex;flex-direction:column;align-items:center;text-shadow:0 2px 18px rgba(0,0,0,.65)}
+.pa-eyebrow{font-size:clamp(9.5px,2.6vw,13px);letter-spacing:.26em;padding-left:.26em;color:#D4AF5A;font-weight:600;white-space:nowrap}
+.pa-dash{width:44px;height:1.5px;background:#C9A44A;margin:clamp(8px,1.4svh,14px) 0}
+.pa-welcome{font-size:clamp(12px,3.6vw,18px);letter-spacing:.38em;padding-left:.38em;font-weight:500}
+.pa-name{font-family:${SERIF};font-weight:600;font-size:clamp(29px,9.4vw,56px);line-height:.95;margin:clamp(4px,.8svh,8px) 0 0;letter-spacing:.01em;white-space:nowrap}
+.pa-partner{font-size:clamp(10px,3vw,15px);letter-spacing:.26em;padding-left:.26em;font-weight:500;margin-top:clamp(8px,1.4svh,14px);white-space:nowrap}
+
+.pa-line{width:84%;height:1px;background:linear-gradient(90deg,transparent,#C9A44A 15%,#E8C97E 50%,#C9A44A 85%,transparent)}
+
+.pa-info{display:flex;flex-direction:column;align-items:center;width:100%;gap:clamp(8px,1.6svh,16px)}
+.pa-save{display:flex;align-items:center;gap:12px;font-size:clamp(10px,1.5svh,13px);letter-spacing:.34em;padding-left:.34em;color:#D4AF5A;font-weight:500}
+.pa-save span{width:34px;height:1px;background:#C9A44A}
+.pa-save span:first-child{background:linear-gradient(90deg,transparent,#C9A44A)}
+.pa-save span:last-child{background:linear-gradient(90deg,#C9A44A,transparent)}
+.pa-date{display:flex;align-items:center;justify-content:center;gap:clamp(14px,4vw,24px)}
+.pa-dd{font-family:${SERIF};font-weight:600;font-size:clamp(46px,8svh,84px);line-height:.85;font-variant-numeric:lining-nums}
+.pa-vbar{width:1.5px;align-self:stretch;min-height:48px;background:linear-gradient(180deg,transparent,#C9A44A 20%,#E8C97E 50%,#C9A44A 80%,transparent)}
+.pa-month{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left}
+.pa-mm{font-family:${SERIF};font-weight:600;font-size:clamp(22px,3.8svh,38px);line-height:1;letter-spacing:.08em}
+.pa-day{font-size:clamp(9.5px,1.4svh,13px);letter-spacing:.3em;font-weight:500;color:rgba(240,235,224,.85)}
+.pa-copy{font-family:${SERIF};font-style:italic;font-size:clamp(16px,2.5svh,23px);line-height:1.35;color:rgba(240,235,224,.92);margin:0;max-width:26em;text-wrap:balance}
+.pa-copy b{font-weight:600;color:${GOLD}}
+.pa-cta{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;width:min(100%,380px);height:clamp(50px,7svh,64px);border-radius:14px;
+  background:linear-gradient(100deg,#B8913A 0%,#F3D98B 45%,#E8C97E 62%,#C9A44A 100%);color:#1a1306;font-weight:700;font-size:clamp(12px,1.75svh,15px);letter-spacing:.16em;white-space:nowrap;
+  box-shadow:inset 0 2px 0 rgba(255,245,215,.6),inset 0 -2px 0 rgba(120,90,30,.35),0 12px 36px rgba(201,164,74,.32)}
+.pa-cta::after{content:'';position:absolute;top:0;bottom:0;width:38%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,250,230,.55),transparent);transform:skewX(-20deg);animation:paShine 5s 1.8s ease-in-out infinite}
+@keyframes paShine{0%{left:-60%}35%,100%{left:130%}}
+.pa-cta-bar{width:1px;height:24px;background:rgba(26,19,6,.45);margin:0 16px}
+.pa-foot{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1.1svh,10px);width:100%}
+.pa-star{display:flex;align-items:center;gap:14px;width:84%;color:${GOLD};font-size:16px;line-height:1}
+.pa-star span{flex:1;height:1px;background:linear-gradient(90deg,transparent,#C9A44A)}
+.pa-star span:last-child{background:linear-gradient(90deg,#C9A44A,transparent)}
+.pa-remember{font-size:clamp(10px,1.5svh,13px);letter-spacing:.32em;padding-left:.32em;color:#D4AF5A;font-weight:500}
+.pa-pg{font-size:clamp(9px,1.35svh,12px);letter-spacing:.4em;padding-left:.4em;color:rgba(240,235,224,.75)}
+.pa-skip{position:relative;z-index:2;font-size:clamp(12px,1.6svh,14px);letter-spacing:.12em;color:rgba(240,235,224,.72);text-decoration:underline;text-underline-offset:5px;padding:4px 8px}
+.pa-skip:hover{color:#fff}
+
+/* entrance */
+@keyframes paUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes paIn{from{opacity:0}to{opacity:1}}
+.pa-brand{animation:paUp .8s ease both}
+.pa-photo{animation:paIn 1.2s .1s ease both}
+.pa-title{animation:paIn 1s .3s ease both}
+.pa-info{animation:paUp .9s .45s ease both}
+
+/* Small / short phones */
+@media (max-height:700px) and (max-aspect-ratio:4/5){
+  .pa-hero{height:clamp(200px,36svh,300px)}
+  .pa-pg{display:none}
+}
+@media (max-height:600px) and (max-aspect-ratio:4/5){
+  .pa-copy{font-size:15px}
+  .pa-hero{height:33svh}
+}
+
+/* Tablet portrait */
+@media (min-width:600px) and (max-aspect-ratio:6/5){
+  .pa-shell{max-width:720px;padding-left:32px;padding-right:32px;gap:clamp(12px,2svh,24px)}
+  .pa-hero{width:calc(100% + 64px);margin:0 -32px;height:clamp(320px,38svh,520px)}
+  .pa-copy{font-size:clamp(19px,2.3svh,24px)}.pa-save,.pa-remember{font-size:14px}.pa-day{font-size:13px}.pa-dd{font-size:84px}.pa-mm{font-size:40px}
+  .pa-title{left:32px;width:56%}
+  .pa-eyebrow{font-size:14px}.pa-welcome{font-size:20px}.pa-partner{font-size:16px}
+  .pa-name{font-size:clamp(56px,8.6vw,84px)}
+  .pa-cta{width:min(100%,440px)}
+}
+
+/* Laptop / desktop / TV: three-column composition */
+@media (min-width:960px) and (min-aspect-ratio:6/5){
+  .pa{overflow:hidden;background:radial-gradient(ellipse 34% 55% at 50% 42%,rgba(201,164,74,.22),transparent 70%),linear-gradient(180deg,#0f0b07,#070504)}
+  .pa-shell{max-width:max(1600px,150vh);height:100%;min-height:0;display:grid;grid-template-columns:1fr minmax(0,1fr) 1fr;grid-template-rows:auto 1fr;
+    align-items:center;column-gap:clamp(16px,2.5vw,106px);row-gap:0;padding:0 clamp(28px,4vw,176px)}
+  .pa-brand{grid-column:1/-1;grid-row:1;padding:clamp(20px,4.6vh,106px) 0 0;max-width:max(1200px,110vh);justify-self:center}
+  .pa-parva{font-size:clamp(30px,4.8vh,110px)}.pa-group{font-size:clamp(10px,1.5vh,31px)}
+  .pa-hero{display:contents}
+  .pa-title{position:relative;left:auto;top:auto;transform:none;width:auto;grid-column:1;grid-row:2;justify-self:end;padding-bottom:7vh;text-shadow:none}
+  .pa-eyebrow{font-size:clamp(12px,1.8vh,35px)}
+  .pa-dash{width:64px;margin:2.6vh 0}
+  .pa-welcome{font-size:clamp(16px,2.8vh,57px)}
+  .pa-name{font-size:clamp(56px,min(6.2vw,11vh),260px);margin-top:1.2vh}
+  .pa-partner{font-size:clamp(13px,2.2vh,48px);margin-top:2.4vh}
+  .pa-photo{position:relative;grid-column:2;grid-row:2;align-self:end;justify-self:center;width:165%;max-width:none;height:auto;aspect-ratio:1.02;max-height:min(80vh,calc(100vh - 130px));right:auto}
+  .pa-glow{top:42%;width:95%}
+  .pa-photo img{object-position:50% 0%;
+    -webkit-mask-image:linear-gradient(to bottom,#000 74%,transparent 99%),linear-gradient(to right,transparent 0%,#000 16%,#000 84%,transparent 100%);
+    mask-image:linear-gradient(to bottom,#000 74%,transparent 99%),linear-gradient(to right,transparent 0%,#000 16%,#000 84%,transparent 100%)}
+  .pa-line{display:none}
+  .pa-info{grid-column:3;grid-row:2;justify-self:start;max-width:max(480px,46vh);gap:clamp(12px,2.4vh,57px);padding-bottom:7vh}
+  .pa-save{font-size:clamp(11px,1.6vh,31px)}
+  .pa-dd{font-size:clamp(60px,10vh,229px)}.pa-mm{font-size:clamp(28px,4.4vh,101px)}.pa-day{font-size:clamp(11px,1.5vh,31px)}
+  .pa-copy{font-size:clamp(18px,2.7vh,57px)}
+  .pa-cta{height:clamp(54px,7.6vh,158px);font-size:clamp(13px,1.8vh,35px);width:min(100%,max(420px,40vh))}
+  .pa-waves{height:16vh}
+  .pa-remember{font-size:clamp(11px,1.5vh,30px)}.pa-pg{font-size:clamp(10px,1.3vh,26px)}.pa-skip{font-size:clamp(13px,1.6vh,32px)}
+  .pa-dash{width:clamp(64px,6vh,130px)}.pa-cta-bar{height:clamp(24px,3vh,60px)}.pa-cta svg{width:clamp(22px,2.6vh,52px);height:auto}
+  .pa-close{width:clamp(42px,4.4vh,90px);height:clamp(42px,4.4vh,90px);font-size:clamp(26px,2.8vh,56px)}
+  .pa-shell{padding-bottom:0}
+}
+
+/* Phones held sideways */
+@media (max-height:520px) and (min-aspect-ratio:6/5){
+  .pa{overflow-y:auto}
+  .pa-shell{max-width:none;display:grid;grid-template-columns:1fr minmax(0,.8fr) 1fr;grid-template-rows:auto auto;align-items:center;
+    gap:8px 18px;padding:10px 60px 12px 20px}
+  .pa-brand{grid-column:1/-1;padding:0 40px}
+  .pa-hero{display:contents}
+  .pa-title{position:relative;left:auto;top:auto;transform:none;width:auto;grid-column:1;grid-row:2}
+  .pa-name{font-size:clamp(26px,8vh,40px)}
+  .pa-photo{position:relative;grid-column:2;grid-row:2;align-self:end;width:100%;height:min(74vh,300px)}
+  .pa-line,.pa-copy,.pa-pg{display:none}
+  .pa-info{grid-column:3;grid-row:2;gap:8px}
+  .pa-dd{font-size:44px}.pa-mm{font-size:22px}
+  .pa-waves{display:none}
+}
+
+@media (prefers-reduced-motion:reduce){.ev-gold,.pa-brand,.pa-photo,.pa-title,.pa-info,.pa-cta::after{animation:none}.pa{transition:none}}
 `
 
 function PersonPlusIcon({ size = 22 }: { size?: number }) {
@@ -47,50 +185,67 @@ function PersonPlusIcon({ size = 22 }: { size?: number }) {
   )
 }
 
-// ─── Request-an-invite form (modal) ──────────────────────────────────────────
+// ─── Registration modal ──────────────────────────────────────────────────────
 function InviteForm({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [trap, setTrap] = useState('') // hidden field: bots fill it, people don't
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [done, setDone] = useState(false)
+  const [touched, setTouched] = useState(false)
+  const [done, setDone] = useState(() => {
+    try { return sessionStorage.getItem(DONE_KEY) === '1' } catch { return false }
+  })
+  const sending = useRef(false)
+
+  const nameErr = name.trim().replace(/\s+/g, ' ').length < 2 ? 'Please enter your full name.' : ''
+  const phoneErr = !phone.trim() ? 'Please enter your phone number.' : !cleanPhone(phone) ? 'Please enter a valid phone number with country code.' : ''
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !sending.current) onClose() }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (busy) return
+    if (sending.current) return // block double submits
+    setTouched(true)
     setError('')
+    if (nameErr || phoneErr) return
     if (trap) { setDone(true); return }
+    sending.current = true
     setBusy(true)
     try {
       await submitInvite(name, phone)
+      try { sessionStorage.setItem(DONE_KEY, '1') } catch { /* ignore */ }
       setDone(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
     }
+    sending.current = false
     setBusy(false)
   }
+
+  const label = { fontSize: 10.5, letterSpacing: '0.22em', color: 'rgba(201,164,74,0.9)', fontWeight: 600 } as const
+  const hint = { fontSize: 12, marginTop: 6, color: '#F28B82' } as const
 
   return (
     <div
       className="fixed inset-0 z-[120] flex items-center justify-center px-4"
       style={{ background: 'rgba(0,0,0,0.78)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
-      onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
+      onMouseDown={e => { if (e.target === e.currentTarget && !sending.current) onClose() }}
       role="dialog"
       aria-modal="true"
-      aria-label="Request an invite"
+      aria-label="Join the celebration — registration"
     >
       <div
         className="relative w-full rounded-2xl"
         style={{
-          maxWidth: 420,
-          padding: '34px 28px 28px',
+          maxWidth: 430,
+          maxHeight: 'calc(100svh - 32px)',
+          overflowY: 'auto',
+          padding: '36px 26px 28px',
           background: 'linear-gradient(180deg,#17120a,#0b0906)',
           border: '1px solid rgba(201,164,74,0.4)',
           boxShadow: '0 30px 80px rgba(0,0,0,0.7), 0 0 50px rgba(201,164,74,0.12)',
@@ -98,49 +253,64 @@ function InviteForm({ onClose }: { onClose: () => void }) {
           color: IVORY,
         }}
       >
-        <button onClick={onClose} aria-label="Close" className="absolute top-3 right-4" style={{ color: 'rgba(240,235,224,0.5)', fontSize: 26, lineHeight: 1 }}>×</button>
+        <button onClick={onClose} aria-label="Close" className="absolute top-3 right-4" style={{ color: 'rgba(240,235,224,0.55)', fontSize: 28, lineHeight: 1 }}>×</button>
 
         {done ? (
-          <div className="text-center py-4">
-            <div className="mx-auto mb-5 flex items-center justify-center" style={{ width: 64, height: 64, borderRadius: '50%', border: '1px solid rgba(201,164,74,0.6)', color: GOLD, fontSize: 30 }}>✓</div>
-            <div className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 30, lineHeight: 1.1 }}>Thank you{name.trim() ? `, ${name.trim().split(' ')[0]}` : ''}!</div>
-            <p className="mt-3" style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 19, color: 'rgba(240,235,224,0.85)' }}>
-              Your invite request has been received. Our team will call you soon to confirm your place.
+          <div className="text-center py-4" role="status">
+            <div className="mx-auto mb-5 flex items-center justify-center" style={{ width: 66, height: 66, borderRadius: '50%', border: '1px solid rgba(201,164,74,0.6)', color: GOLD, fontSize: 30 }}>✓</div>
+            <div className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 32, lineHeight: 1.1 }}>
+              You're registered{name.trim() ? `, ${name.trim().split(' ')[0]}` : ''}!
+            </div>
+            <p className="mt-3" style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 19, lineHeight: 1.4, color: 'rgba(240,235,224,0.88)' }}>
+              Thank you for joining us. Our team will call you shortly to confirm your place on 14 November.
             </p>
-            <button onClick={onClose} className="ev-btn mt-7 px-8 py-3 rounded-full" style={{ background: 'linear-gradient(90deg,#B8913A,#E8C97E)', color: '#120d04', fontWeight: 700, fontSize: 12, letterSpacing: '0.2em' }}>
+            <button onClick={onClose} className="ev-btn mt-7 px-9 py-3 rounded-full" style={{ background: 'linear-gradient(90deg,#B8913A,#E8C97E)', color: '#120d04', fontWeight: 700, fontSize: 12, letterSpacing: '0.2em' }}>
               DONE
             </button>
           </div>
         ) : (
           <form onSubmit={submit} noValidate>
             <div className="text-center mb-6">
-              <div style={{ fontSize: 11, letterSpacing: '0.3em', color: '#C9A44A', fontWeight: 500 }}>MAHESH BHUPATHI · 14 NOVEMBER</div>
-              <div className="ev-gold mt-2" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 32, lineHeight: 1.05 }}>Request an Invite</div>
+              <div style={{ fontSize: 11, letterSpacing: '0.3em', color: '#C9A44A', fontWeight: 600 }}>NEW PARTNERSHIP · 14 NOV</div>
+              <div className="ev-gold mt-2" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 34, lineHeight: 1.05 }}>Join the Celebration</div>
+              <p className="mt-2" style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 17, color: 'rgba(240,235,224,0.75)' }}>
+                Reserve your place for an evening with Mahesh Bhupathi.
+              </p>
             </div>
 
             <label className="block mb-4">
-              <span className="block mb-2" style={{ fontSize: 10.5, letterSpacing: '0.22em', color: 'rgba(201,164,74,0.85)', fontWeight: 600 }}>FULL NAME</span>
-              <input className="ev-in" value={name} onChange={e => setName(e.target.value)} placeholder="Your full name" autoComplete="name" maxLength={100} required autoFocus />
+              <span className="block mb-2" style={label}>FULL NAME *</span>
+              <input
+                className="ev-in" value={name} onChange={e => setName(e.target.value)} placeholder="Your full name"
+                autoComplete="name" maxLength={100} required autoFocus aria-invalid={touched && !!nameErr}
+              />
+              {touched && nameErr && <span className="block" style={hint}>{nameErr}</span>}
             </label>
 
-            <label className="block mb-2">
-              <span className="block mb-2" style={{ fontSize: 10.5, letterSpacing: '0.22em', color: 'rgba(201,164,74,0.85)', fontWeight: 600 }}>PHONE NUMBER</span>
-              <input className="ev-in" type="tel" inputMode="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+971 50 123 4567" autoComplete="tel" maxLength={20} required />
+            <label className="block">
+              <span className="block mb-2" style={label}>PHONE NUMBER *</span>
+              <input
+                className="ev-in" type="tel" inputMode="tel" value={phone} onChange={e => setPhone(e.target.value)}
+                placeholder="+971 50 123 4567" autoComplete="tel" maxLength={20} required aria-invalid={touched && !!phoneErr}
+              />
+              {touched && phoneErr
+                ? <span className="block" style={hint}>{phoneErr}</span>
+                : <span className="block" style={{ fontSize: 11.5, marginTop: 6, color: 'rgba(240,235,224,0.42)' }}>Please include your country code.</span>}
             </label>
-            <p style={{ fontSize: 11.5, color: 'rgba(240,235,224,0.4)' }}>Please include your country code.</p>
 
             {/* Hidden from people; catches spam bots */}
             <input value={trap} onChange={e => setTrap(e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: 'absolute', left: -9999, width: 1, height: 1, opacity: 0 }} />
 
-            {error && <p className="mt-4" style={{ fontSize: 13, color: '#F87171' }}>{error}</p>}
+            {error && <p className="mt-4" role="alert" style={{ fontSize: 13, color: '#F28B82' }}>{error}</p>}
 
             <button
               type="submit"
               disabled={busy}
-              className="ev-btn w-full mt-6 py-3.5 rounded-full flex items-center justify-center gap-3 disabled:opacity-60"
-              style={{ background: 'linear-gradient(90deg,#B8913A,#F3D98B 55%,#C9A44A)', color: '#120d04', fontWeight: 700, fontSize: 13, letterSpacing: '0.2em', boxShadow: '0 8px 30px rgba(201,164,74,0.3)' }}
+              aria-busy={busy}
+              className="ev-btn w-full mt-6 rounded-full flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-wait"
+              style={{ height: 54, background: 'linear-gradient(90deg,#B8913A,#F3D98B 55%,#C9A44A)', color: '#120d04', fontWeight: 700, fontSize: 13, letterSpacing: '0.2em', boxShadow: '0 8px 30px rgba(201,164,74,0.3)' }}
             >
-              {busy ? 'SENDING…' : 'SEND REQUEST'}
+              {busy ? 'REGISTERING…' : 'REGISTER NOW'}
             </button>
           </form>
         )}
@@ -158,27 +328,6 @@ export default function EventInvite() {
   })
   const [shown, setShown] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
-  const [scale, setScale] = useState(1)
-  const [wide, setWide] = useState(false)
-
-  // Fit the whole invitation on any screen (phone, laptop, 4K) — text stays razor sharp because it is real text
-  useEffect(() => {
-    if (!open) return
-    const fit = () => {
-      const vw = window.visualViewport?.width ?? window.innerWidth
-      const vh = window.visualViewport?.height ?? window.innerHeight
-      const isWide = vw / vh >= 1.1 && vw >= 700 // landscape screens get the wide layout
-      setWide(isWide)
-      setScale(isWide ? Math.min(vw / WIDE_W, vh / WIDE_H) : Math.min(vw / ART_W, (vh - 8) / ART_H))
-    }
-    fit()
-    window.addEventListener('resize', fit)
-    window.visualViewport?.addEventListener('resize', fit)
-    return () => {
-      window.removeEventListener('resize', fit)
-      window.visualViewport?.removeEventListener('resize', fit)
-    }
-  }, [open])
 
   // Fonts for this announcement only
   useEffect(() => {
@@ -197,7 +346,7 @@ export default function EventInvite() {
     return () => { document.documentElement.style.removeProperty('--sold-strip-h') }
   }, [active])
 
-  // Fade in + lock page scroll while the opening screen is up
+  // Fade in + lock page scroll while the announcement is up
   useEffect(() => {
     if (!open) return
     const raf = requestAnimationFrame(() => setShown(true))
@@ -229,11 +378,12 @@ export default function EventInvite() {
         className="fixed top-0 inset-x-0 z-[60] flex items-center justify-center gap-2 px-3"
         style={{ height: STRIP_H, background: 'linear-gradient(90deg,#1a1408,#3a2c10,#1a1408)', borderBottom: '1px solid rgba(201,164,74,0.4)', color: IVORY, fontFamily: SANS, fontSize: 12 }}
       >
+        <span className="hidden sm:inline" style={{ opacity: 0.85 }}>Welcoming</span>
         <span className="whitespace-nowrap" style={{ color: GOLD, fontWeight: 600, letterSpacing: '0.12em' }}>MAHESH BHUPATHI</span>
-        <span className="hidden sm:inline" style={{ opacity: 0.85 }}>at Parva Group</span>
+        <span className="hidden sm:inline" style={{ opacity: 0.85 }}>as our new partner</span>
         <span className="whitespace-nowrap" style={{ opacity: 0.85 }}>· 14 Nov</span>
         <button onClick={() => setFormOpen(true)} className="ml-1 sm:ml-2 underline whitespace-nowrap" style={{ color: GOLD, textUnderlineOffset: 3, fontWeight: 600 }}>
-          Request an invite →
+          Join →
         </button>
       </div>
 
@@ -241,251 +391,102 @@ export default function EventInvite() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          aria-label="Open the Mahesh Bhupathi event invitation"
+          aria-label="Open the Mahesh Bhupathi partnership announcement"
           className="ev-btn fixed z-40 flex items-center gap-3 rounded-2xl text-left"
           style={{ left: 16, bottom: 22, padding: '10px 14px', background: 'rgba(10,8,4,0.9)', border: '1px solid rgba(201,164,74,0.5)', boxShadow: '0 8px 30px rgba(0,0,0,0.5), 0 0 24px rgba(201,164,74,0.15)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', fontFamily: SANS }}
         >
-          <img src={maheshImg} alt="" style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', objectPosition: 'top', border: '1px solid rgba(201,164,74,0.6)', background: '#1a140a' }} />
+          <img src={partnerImg} alt="" style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', objectPosition: '52% 12%', border: '1px solid rgba(201,164,74,0.6)', background: '#1a140a' }} />
           <span className="flex flex-col">
-            <span style={{ fontSize: 9, letterSpacing: '0.22em', color: '#C9A44A', fontWeight: 600 }}>EXCLUSIVE EVENT · 14 NOV</span>
-            <span style={{ fontSize: 13, color: IVORY, fontWeight: 600 }}>Request an invite</span>
+            <span style={{ fontSize: 9, letterSpacing: '0.22em', color: '#C9A44A', fontWeight: 600 }}>NEW PARTNERSHIP · 14 NOV</span>
+            <span style={{ fontSize: 13, color: IVORY, fontWeight: 600 }}>Join the celebration</span>
           </span>
         </button>
       )}
 
-      {/* Opening screen — the invitation, laid out exactly like the 738×1600 poster and scaled to fit the screen */}
+      {/* Opening announcement — real, responsive website layout */}
       {open && (
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Parva Group welcomes Mahesh Bhupathi as our new partner, 14 November"
-          className="fixed inset-0 z-[100] flex items-center justify-center transition-opacity duration-500"
-          style={{ opacity: shown ? 1 : 0, background: wide ? 'linear-gradient(180deg,#0e0b07,#080604)' : 'radial-gradient(ellipse at 50% 40%, #1a140b 0%, #050403 70%)', color: IVORY, fontFamily: SANS, overflow: 'hidden' }}
+          aria-labelledby="pa-heading"
+          className="pa"
+          style={{ opacity: shown ? 1 : 0 }}
         >
-          <button onClick={close} aria-label="Close and go to the website" className="absolute z-20" style={{ top: 10, right: 14, color: 'rgba(240,235,224,0.7)', fontSize: 32, lineHeight: 1 }}>×</button>
+          <button onClick={close} aria-label="Close announcement and continue to the website" className="pa-close">×</button>
 
-          {wide ? (
-            <div style={{ width: WIDE_W * scale, height: WIDE_H * scale, position: 'relative', flex: 'none' }}>
-              <div
-                className="absolute top-0 left-0"
-                style={{
-                  width: WIDE_W,
-                  height: WIDE_H,
-                  transform: `scale(${scale})`,
-                  transformOrigin: 'top left',
-                  background:
-                    'radial-gradient(ellipse 30% 55% at 50% 38%, rgba(201,164,74,0.26), transparent 70%), radial-gradient(ellipse 60% 22% at 50% 100%, rgba(201,164,74,0.14), transparent 70%)',
-                }}
-              >
-                {/* Gold sweeps */}
-                <svg viewBox="0 0 1760 900" width={1760} height={900} className="absolute top-0 left-0 pointer-events-none" aria-hidden="true">
-                  <path d="M1760 26 C1660 66 1560 106 1460 160" stroke="#C9A44A" strokeWidth="1.6" fill="none" opacity="0.55" />
-                  <path d="M0 120 C180 160 330 230 470 330" stroke="#C9A44A" strokeWidth="1.2" fill="none" opacity="0.35" />
-                  <defs>
-                    <linearGradient id="evWaveW" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0" stopColor="#F3D98B" stopOpacity="0.85" />
-                      <stop offset="0.5" stopColor="#C9A44A" stopOpacity="0.35" />
-                      <stop offset="1" stopColor="#F3D98B" stopOpacity="0.85" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M0 820 C400 900 700 860 880 860 C1060 860 1360 900 1760 820" stroke="url(#evWaveW)" strokeWidth="2.4" fill="none" />
-                  <path d="M0 860 C420 920 720 890 880 890 C1040 890 1340 920 1760 860" stroke="url(#evWaveW)" strokeWidth="1.2" fill="none" opacity="0.6" />
-                </svg>
+          <svg className="pa-sweep" viewBox="0 0 620 420" aria-hidden="true">
+            <path d="M620 18 C520 70 430 140 340 250" stroke="#C9A44A" strokeWidth="1.4" fill="none" opacity="0.55" />
+            <path d="M620 0 C490 100 400 190 300 330" stroke="#C9A44A" strokeWidth="0.8" fill="none" opacity="0.25" />
+          </svg>
+          <svg className="pa-waves" viewBox="0 0 1000 200" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="paWave" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stopColor="#F3D98B" stopOpacity="0.85" />
+                <stop offset="0.5" stopColor="#C9A44A" stopOpacity="0.35" />
+                <stop offset="1" stopColor="#F3D98B" stopOpacity="0.85" />
+              </linearGradient>
+              <linearGradient id="paGlow" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#C9A44A" stopOpacity="0.16" />
+                <stop offset="1" stopColor="#C9A44A" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <path d="M0 70 C250 170 750 170 1000 70 L1000 200 L0 200Z" fill="url(#paGlow)" />
+            <path d="M0 70 C250 170 750 170 1000 70" stroke="url(#paWave)" strokeWidth="2" fill="none" vectorEffect="non-scaling-stroke" />
+            <path d="M0 130 C260 200 740 200 1000 130" stroke="url(#paWave)" strokeWidth="1" fill="none" opacity="0.55" vectorEffect="non-scaling-stroke" />
+          </svg>
 
-                {/* PARVA GROUP header */}
-                <div className="absolute" style={{ left: 120, right: 120, top: 38, display: 'flex', alignItems: 'center', gap: 34 }}>
-                  <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,transparent,#C9A44A)' }} />
-                  <div className="text-center">
-                    <div className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 46, letterSpacing: '0.42em', paddingLeft: '0.42em', lineHeight: 1 }}>PARVA</div>
-                    <div style={{ fontSize: 16, letterSpacing: '0.38em', paddingLeft: '0.38em', color: 'rgba(240,235,224,0.8)', marginTop: 8 }}>GROUP</div>
-                  </div>
-                  <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,#C9A44A,transparent)' }} />
-                </div>
+          <div className="pa-shell">
+            <header className="pa-brand">
+              <span className="pa-rule" />
+              <div>
+                <div className="ev-gold pa-parva">PARVA</div>
+                <div className="pa-group">GROUP</div>
+              </div>
+              <span className="pa-rule r" />
+            </header>
 
-                {/* Photo (centre) */}
-                <img src={maheshPoster} alt="Mahesh Bhupathi" className="ev-photo-w absolute" style={{ left: 560, top: 120, width: 640, height: 780, objectFit: 'cover', objectPosition: 'center top' }} />
-
-                {/* Left: invitation title */}
-                <div className="absolute text-center" style={{ left: 60, width: 560, top: 235 }}>
-                  <div style={{ fontSize: 20, letterSpacing: '0.24em', color: '#D4AF5A', fontWeight: 500 }}>A NEW PARTNERSHIP</div>
-                  <div style={{ width: 80, height: 2, background: '#C9A44A', margin: '26px auto 32px' }} />
-                  <div style={{ fontSize: 28, letterSpacing: '0.36em', paddingLeft: '0.36em', color: IVORY, fontWeight: 500 }}>WELCOMING</div>
-                  <div className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 104, lineHeight: 0.92, marginTop: 14 }}>
-                    MAHESH<br />BHUPATHI
-                  </div>
-                  <div style={{ fontSize: 24, letterSpacing: '0.24em', paddingLeft: '0.24em', color: IVORY, fontWeight: 500, marginTop: 26 }}>AS OUR NEW PARTNER</div>
-                </div>
-
-                {/* Right: date, message, button */}
-                <div className="absolute text-center" style={{ left: 1110, width: 620, top: 200 }}>
-                  <div className="flex items-center justify-center" style={{ gap: 16 }}>
-                    <span style={{ width: 46, height: 1.5, background: 'linear-gradient(90deg,transparent,#C9A44A)' }} />
-                    <span style={{ fontSize: 17, letterSpacing: '0.34em', paddingLeft: '0.34em', color: '#D4AF5A', fontWeight: 500 }}>SAVE THE DATE</span>
-                    <span style={{ width: 46, height: 1.5, background: 'linear-gradient(90deg,#C9A44A,transparent)' }} />
-                  </div>
-                  <div className="flex items-center justify-center" style={{ gap: 28, marginTop: 18 }}>
-                    <span className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 96, lineHeight: 0.85, fontVariantNumeric: 'lining-nums' }}>14</span>
-                    <span style={{ width: 1.5, height: 78, background: 'linear-gradient(180deg,transparent,#C9A44A 20%,#E8C97E 50%,#C9A44A 80%,transparent)' }} />
-                    <span className="flex flex-col items-start" style={{ gap: 7 }}>
-                      <span className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 43, lineHeight: 1, letterSpacing: '0.08em' }}>NOVEMBER</span>
-                      <span style={{ fontSize: 16, letterSpacing: '0.32em', color: IVORY, fontWeight: 500, opacity: 0.85 }}>SATURDAY · 2026</span>
-                    </span>
-                  </div>
-                  <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 31, lineHeight: 1.28, color: 'rgba(240,235,224,0.94)', marginTop: 30 }}>
-                    Be there as we begin a new chapter<br />and celebrate a landmark partnership<br />with{' '}
-                    <span style={{ color: GOLD, fontWeight: 600 }}>Mahesh Bhupathi</span> at Parva Group.
-                  </p>
-                  <button
-                    onClick={() => setFormOpen(true)}
-                    className="ev-btn flex items-center mx-auto"
-                    style={{
-                      marginTop: 36, width: 480, height: 88, borderRadius: 18, padding: '0 36px 0 44px',
-                      background: 'linear-gradient(100deg,#B8913A 0%,#F3D98B 45%,#E8C97E 62%,#C9A44A 100%)',
-                      color: '#1a1306',
-                      boxShadow: 'inset 0 2px 0 rgba(255,245,215,0.65), inset 0 -2px 0 rgba(120,90,30,0.4), 0 14px 44px rgba(201,164,74,0.35)',
-                    }}
-                  >
-                    <PersonPlusIcon size={34} />
-                    <span style={{ width: 2, height: 40, background: 'rgba(26,19,6,0.55)', margin: '0 24px' }} />
-                    <span style={{ flex: 1, textAlign: 'left', fontWeight: 700, fontSize: 18, letterSpacing: '0.13em', whiteSpace: 'nowrap' }}>JOIN THE CELEBRATION</span>
-                  </button>
-                  <div className="flex items-center" style={{ gap: 14, marginTop: 34 }}>
-                    <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,transparent,#C9A44A)' }} />
-                    <span style={{ color: GOLD, fontSize: 20, lineHeight: 1 }}>✦</span>
-                    <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,#C9A44A,transparent)' }} />
-                  </div>
-                  <div style={{ marginTop: 20, fontSize: 17, letterSpacing: '0.3em', paddingLeft: '0.3em', color: '#D4AF5A', fontWeight: 500 }}>AN EVENING TO REMEMBER</div>
-                  <div style={{ marginTop: 10, fontSize: 16, letterSpacing: '0.35em', paddingLeft: '0.35em', color: 'rgba(240,235,224,0.85)' }}>PARVA GROUP</div>
-                  <button onClick={close} style={{ marginTop: 26, fontSize: 16, letterSpacing: '0.14em', color: 'rgba(240,235,224,0.7)', textDecoration: 'underline', textUnderlineOffset: 5 }}>
-                    Continue to website →
-                  </button>
-                </div>
+            <div className="pa-hero">
+              <figure className="pa-photo">
+                <span className="pa-glow" aria-hidden="true" />
+                <img src={partnerImg} alt="Mahesh Bhupathi" />
+              </figure>
+              <div className="pa-title">
+                <div className="pa-eyebrow">A NEW PARTNERSHIP</div>
+                <span className="pa-dash" aria-hidden="true" />
+                <div className="pa-welcome">WELCOMING</div>
+                <h1 id="pa-heading" className="ev-gold pa-name">MAHESH<br />BHUPATHI</h1>
+                <div className="pa-partner">AS OUR NEW PARTNER</div>
               </div>
             </div>
-          ) : (
-          <div style={{ width: ART_W * scale, height: ART_H * scale, position: 'relative', flex: 'none' }}>
-            <div
-              className="absolute top-0 left-0 overflow-hidden"
-              style={{
-                width: ART_W,
-                height: ART_H,
-                transform: `scale(${scale})`,
-                transformOrigin: 'top left',
-                background:
-                  'radial-gradient(ellipse 55% 30% at 85% 22%, rgba(201,164,74,0.28), transparent 70%), radial-gradient(ellipse 80% 25% at 50% 96%, rgba(201,164,74,0.16), transparent 70%), linear-gradient(180deg,#0f0c08 0%,#090705 55%,#0b0906 100%)',
-                boxShadow: '0 0 0 1px rgba(201,164,74,0.15), 0 30px 90px rgba(0,0,0,0.8)',
-              }}
-            >
-              {/* Top-right gold sweep */}
-              <svg viewBox="0 0 738 700" width={738} height={700} className="absolute top-0 left-0 pointer-events-none" aria-hidden="true">
-                <path d="M738 20 C640 90 560 160 470 260" stroke="#C9A44A" strokeWidth="1.6" fill="none" opacity="0.7" />
-                <path d="M738 0 C600 120 520 210 430 330" stroke="#C9A44A" strokeWidth="0.8" fill="none" opacity="0.35" />
-              </svg>
 
-              {/* Photo */}
-              <img src={maheshPoster} alt="Mahesh Bhupathi" className="ev-photo absolute" style={{ left: 300, top: 160, width: 438, height: 540, objectFit: 'cover' }} />
+            <span className="pa-line" aria-hidden="true" />
 
-              {/* PARVA GROUP header */}
-              <div className="absolute" style={{ left: 38, right: 38, top: 76, display: 'flex', alignItems: 'center', gap: 28 }}>
-                <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,transparent,#C9A44A)' }} />
-                <div className="text-center">
-                  <div className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 46, letterSpacing: '0.42em', paddingLeft: '0.42em', lineHeight: 1 }}>PARVA</div>
-                  <div style={{ fontSize: 17, letterSpacing: '0.38em', paddingLeft: '0.38em', color: 'rgba(240,235,224,0.8)', marginTop: 8 }}>GROUP</div>
-                </div>
-                <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,#C9A44A,transparent)' }} />
+            <section className="pa-info" aria-label="Event details">
+              <div className="pa-save"><span />SAVE THE DATE<span /></div>
+              <div className="pa-date">
+                <span className="ev-gold pa-dd">14</span>
+                <span className="pa-vbar" aria-hidden="true" />
+                <span className="pa-month">
+                  <span className="ev-gold pa-mm">NOVEMBER</span>
+                  <span className="pa-day">SATURDAY · 2026</span>
+                </span>
               </div>
-
-              {/* Left text block */}
-              <div className="absolute text-center" style={{ left: 30, width: 400, top: 276 }}>
-                <div style={{ fontSize: 18, letterSpacing: '0.22em', color: '#D4AF5A', fontWeight: 500 }}>A NEW PARTNERSHIP</div>
-                <div style={{ width: 70, height: 2, background: '#C9A44A', margin: '24px auto 30px' }} />
-                <div style={{ fontSize: 25, letterSpacing: '0.36em', paddingLeft: '0.36em', color: IVORY, fontWeight: 500 }}>WELCOMING</div>
-                <div className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 82, lineHeight: 0.92, marginTop: 10 }}>
-                  MAHESH<br />BHUPATHI
-                </div>
-                <div style={{ fontSize: 21, letterSpacing: '0.2em', paddingLeft: '0.2em', color: IVORY, fontWeight: 500, marginTop: 22, whiteSpace: 'nowrap' }}>AS OUR NEW PARTNER</div>
-              </div>
-
-              {/* Gold line */}
-              <div className="absolute" style={{ left: 100, right: 98, top: 680, height: 1.5, background: 'linear-gradient(90deg,transparent,#C9A44A 15%,#E8C97E 50%,#C9A44A 85%,transparent)' }} />
-
-              {/* Date */}
-              <div className="absolute" style={{ left: 0, right: 0, top: 722 }}>
-                <div className="flex items-center justify-center" style={{ gap: 16 }}>
-                  <span style={{ width: 46, height: 1.5, background: 'linear-gradient(90deg,transparent,#C9A44A)' }} />
-                  <span style={{ fontSize: 18, letterSpacing: '0.34em', paddingLeft: '0.34em', color: '#D4AF5A', fontWeight: 500 }}>SAVE THE DATE</span>
-                  <span style={{ width: 46, height: 1.5, background: 'linear-gradient(90deg,#C9A44A,transparent)' }} />
-                </div>
-                <div className="flex items-center justify-center" style={{ gap: 30, marginTop: 16 }}>
-                  <span className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 100, lineHeight: 0.85, fontVariantNumeric: 'lining-nums' }}>14</span>
-                  <span style={{ width: 1.5, height: 82, background: 'linear-gradient(180deg,transparent,#C9A44A 20%,#E8C97E 50%,#C9A44A 80%,transparent)' }} />
-                  <span className="flex flex-col items-start" style={{ gap: 8 }}>
-                    <span className="ev-gold" style={{ fontFamily: SERIF, fontWeight: 600, fontSize: 45, lineHeight: 1, letterSpacing: '0.08em' }}>NOVEMBER</span>
-                    <span style={{ fontSize: 17, letterSpacing: '0.32em', color: IVORY, fontWeight: 500, opacity: 0.85 }}>SATURDAY · 2026</span>
-                  </span>
-                </div>
-              </div>
-
-              <p className="absolute text-center" style={{ left: 60, right: 60, top: 878, fontFamily: SERIF, fontStyle: 'italic', fontSize: 33, lineHeight: 1.25, color: 'rgba(240,235,224,0.94)' }}>
-                Be there as we begin a new chapter<br />and celebrate a landmark partnership with<br />
-                <span style={{ color: GOLD, fontWeight: 600 }}>Mahesh Bhupathi</span> at Parva Group.
+              <p className="pa-copy">
+                Be there as we begin a new chapter and celebrate a landmark partnership with <b>Mahesh Bhupathi</b> at Parva Group.
               </p>
-
-              {/* Request an invite */}
-              <button
-                onClick={() => setFormOpen(true)}
-                className="ev-btn absolute flex items-center"
-                style={{
-                  left: 117, width: 504, top: 1055, height: 98, borderRadius: 18, padding: '0 40px 0 50px',
-                  background: 'linear-gradient(100deg,#B8913A 0%,#F3D98B 45%,#E8C97E 62%,#C9A44A 100%)',
-                  color: '#1a1306',
-                  boxShadow: 'inset 0 2px 0 rgba(255,245,215,0.65), inset 0 -2px 0 rgba(120,90,30,0.4), 0 14px 44px rgba(201,164,74,0.35)',
-                }}
-              >
-                <PersonPlusIcon size={38} />
-                <span style={{ width: 2, height: 44, background: 'rgba(26,19,6,0.55)', margin: '0 26px' }} />
-                <span style={{ flex: 1, textAlign: 'left', fontWeight: 700, fontSize: 19, letterSpacing: '0.13em', whiteSpace: 'nowrap' }}>JOIN THE CELEBRATION</span>
+              <button onClick={() => setFormOpen(true)} className="ev-btn pa-cta">
+                <PersonPlusIcon size={22} />
+                <span className="pa-cta-bar" aria-hidden="true" />
+                JOIN THE CELEBRATION
               </button>
-
-              {/* Divider */}
-              <div className="absolute flex items-center" style={{ left: 100, right: 98, top: 1200, gap: 16 }}>
-                <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,transparent,#C9A44A)' }} />
-                <span style={{ color: GOLD, fontSize: 24, lineHeight: 1 }}>✦</span>
-                <span style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg,#C9A44A,transparent)' }} />
+              <div className="pa-foot">
+                <div className="pa-star" aria-hidden="true"><span />✦<span /></div>
+                <div className="pa-remember">AN EVENING TO REMEMBER</div>
+                <div className="pa-pg">PARVA GROUP</div>
+                <button onClick={close} className="pa-skip">Continue to website →</button>
               </div>
-
-              <div className="absolute text-center" style={{ left: 0, right: 0, top: 1266, fontSize: 19, letterSpacing: '0.3em', paddingLeft: '0.3em', color: '#D4AF5A', fontWeight: 500 }}>
-                AN EVENING TO REMEMBER
-              </div>
-              <div className="absolute text-center" style={{ left: 0, right: 0, top: 1313, fontSize: 18, letterSpacing: '0.35em', paddingLeft: '0.35em', color: 'rgba(240,235,224,0.85)' }}>
-                PARVA GROUP
-              </div>
-
-              {/* Flowing gold waves */}
-              <svg viewBox="0 0 738 280" width={738} height={280} className="absolute left-0 pointer-events-none" style={{ top: 1330 }} aria-hidden="true">
-                <defs>
-                  <linearGradient id="evWave" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0" stopColor="#F3D98B" stopOpacity="0.9" />
-                    <stop offset="0.5" stopColor="#C9A44A" stopOpacity="0.5" />
-                    <stop offset="1" stopColor="#F3D98B" />
-                  </linearGradient>
-                  <linearGradient id="evGlow" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stopColor="#C9A44A" stopOpacity="0.22" />
-                    <stop offset="1" stopColor="#C9A44A" stopOpacity="0.02" />
-                  </linearGradient>
-                </defs>
-                <path d="M0 30 C160 110 330 150 460 140 C580 130 670 90 738 60 L738 280 L0 280Z" fill="url(#evGlow)" />
-                <path d="M0 30 C160 110 330 150 460 140 C580 130 670 90 738 60" stroke="url(#evWave)" strokeWidth="3" fill="none" />
-                <path d="M0 120 C200 190 380 200 520 180 C620 165 690 140 738 120" stroke="url(#evWave)" strokeWidth="1.6" fill="none" opacity="0.7" />
-                <path d="M0 200 C220 250 420 250 738 200" stroke="url(#evWave)" strokeWidth="1" fill="none" opacity="0.5" />
-              </svg>
-
-              <button onClick={close} className="absolute" style={{ left: 0, right: 0, top: 1380, fontSize: 17, letterSpacing: '0.14em', color: 'rgba(240,235,224,0.7)', textDecoration: 'underline', textUnderlineOffset: 5 }}>
-                Continue to website →
-              </button>
-            </div>
+            </section>
           </div>
-          )}
         </div>
       )}
 
